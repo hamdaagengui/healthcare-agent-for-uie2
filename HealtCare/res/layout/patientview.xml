@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  android:layout_width="match_parent"
+  android:layout_height="match_parent"
+  android:padding="5dp"
+  android:orientation="vertical">
+
+<LinearLayout
+	android:layout_width="fill_parent"
+	android:layout_height="wrap_content"
+	android:orientation="horizontal">	
+	<TextView 
+		android:text="ID: " 
+		android:layout_height="wrap_content" 
+	    android:layout_width="wrap_content"
+	    android:textSize="20dp"
+	    android:textStyle="bold"/>
+	
+	<TextView 
+		android:id="@+id/tx_patient_id" 
+		android:layout_height="wrap_content" 
+	    android:layout_width="wrap_content"
+	    android:textSize="20dp"/>
+</LinearLayout>
+    
+    	
+<LinearLayout
+	android:layout_width="fill_parent"
+	android:layout_height="wrap_content"
+	android:orientation="horizontal">	
+	<TextView 
+		android:text="Name: " 
+		android:layout_height="wrap_content" 
+	    android:layout_width="wrap_content"
+	    android:textSize="20dp"
+	    android:textStyle="bold"/>
+	
+	<TextView 
+		android:id="@+id/tx_patient_fullname" 
+		android:layout_height="wrap_content" 
+	    android:layout_width="wrap_content"
+	    android:textSize="20dp"/>
+</LinearLayout>
+
+
+<LinearLayout
+	android:layout_width="fill_parent"
+	android:layout_height="wrap_content"
+	android:orientation="horizontal">	
+	<TextView 
+		android:text="Birthdate: " 
+		android:layout_height="wrap_content" 
+	    android:layout_width="wrap_content"
+	    android:textSize="20dp"
+	    android:textStyle="bold"/>
+	
+	<TextView 
+		android:id="@+id/tx_patient_dateofbirth" 
+		android:layout_height="wrap_content" 
+	    android:layout_width="wrap_content"
+	    android:textSize="20dp"/>
+</LinearLayout>
+
+<LinearLayout
+	android:layout_width="fill_parent"
+	android:layout_height="wrap_content"
+	android:orientation="horizontal">	
+	<TextView 
+		android:text="Address: " 
+		android:layout_height="wrap_content" 
+	    android:layout_width="wrap_content"
+	    android:textSize="20dp"
+	    android:textStyle="bold"/>
+	
+	<TextView 
+		android:id="@+id/tx_patient_address" 
+		android:layout_height="wrap_content" 
+	    android:layout_width="wrap_content"
+	    android:textSize="20dp"/>
+</LinearLayout>
+
+<LinearLayout
+	android:layout_height="fill_parent" 
+	android:layout_width="fill_parent"
+	android:layout_marginTop="10dp"
+	android:orientation="vertical"
+	android:gravity="center">
+<Button
+	android:layout_height="wrap_content" 
+	android:layout_width="wrap_content"
+	android:padding="20dp"
+	android:text="    Edit    "
+	android:textSize="20dp"
+	android:onClick="startEditActivity"/>
+<Button
+	android:layout_height="wrap_content" 
+	android:layout_width="wrap_content"
+	android:padding="10dp"
+	android:drawablePadding="10dp"
+	android:text="View Temperature History"
+	android:textSize="20dp"
+	android:drawableTop="@drawable/measurements"
+	android:onClick="startGraphActivity"/>
+	
+</LinearLayout>
+ 
+</LinearLayout>

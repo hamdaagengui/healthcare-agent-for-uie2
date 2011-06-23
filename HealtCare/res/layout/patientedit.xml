@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  android:padding="5dp"
+  android:layout_height="wrap_content" 
+  android:layout_width="match_parent" 
+  android:orientation="horizontal">
+  
+  
+ <ScrollView 
+  	android:layout_width="match_parent" 
+  	android:layout_height="wrap_content">
+  	
+<LinearLayout 
+	android:layout_width="match_parent"  	
+	android:layout_height="match_parent"
+	android:orientation="vertical">
+
+<TextView 
+	android:text="ID: " 
+	android:layout_height="wrap_content" 
+    android:layout_width="wrap_content"
+    android:textSize="20dp"
+    android:textStyle="bold"/>
+
+<EditText 
+	android:id="@+id/ed_patient_id" 
+	android:layout_height="wrap_content" 
+    android:layout_width="fill_parent"
+    android:numeric="integer"
+    android:textSize="20dp"/>
+    
+<TextView 
+	android:text="Firtname " 
+	android:layout_height="wrap_content" 
+    android:layout_width="wrap_content"
+    android:textSize="20dp"
+    android:textStyle="bold"/>
+	
+<EditText 
+	android:id="@+id/ed_patient_firstname" 
+	android:layout_height="wrap_content" 
+    android:layout_width="fill_parent"
+    android:singleLine="true"
+    android:textSize="20dp"/>
+
+<TextView 
+	android:text="Lastname: " 
+	android:layout_height="wrap_content" 
+    android:layout_width="wrap_content"
+    android:textSize="20dp"
+    android:textStyle="bold"/>
+	
+<EditText 
+	android:id="@+id/ed_patient_lastname" 
+	android:layout_height="wrap_content" 
+    android:layout_width="fill_parent"
+    android:singleLine="true"
+    android:textSize="20dp"/>
+
+<TextView 
+	android:text="Birthdate: " 
+	android:layout_height="wrap_content" 
+    android:layout_width="wrap_content"
+    android:textSize="20dp"
+    android:textStyle="bold"/>
+	
+<EditText 
+	android:id="@+id/ed_patient_birthdate" 
+	android:layout_height="wrap_content" 
+    android:layout_width="fill_parent"
+    android:singleLine="true"
+    android:clickable="true"
+    android:editable="false"  
+    android:inputType="none"
+    android:onClick="openBirthdayDialog"
+    android:textSize="20dp"/>
+    
+<TextView 
+	android:text="Gender: " 
+	android:layout_height="wrap_content" 
+    android:layout_width="wrap_content"
+    android:textSize="20dp"
+    android:textStyle="bold"/>
+	
+<RadioGroup 
+	android:layout_width="fill_parent"
+	android:layout_height="wrap_content" 
+	android:orientation="horizontal">
+					
+	<RadioButton 
+		android:checked="false" 
+		android:id="@+id/opt_patient_male"
+		android:text="Male" 
+		android:textSize="14sp"
+		android:layout_weight="0.5"/>
+	<RadioButton 
+		android:checked="false" 
+		android:id="@+id/opt_patient_female"
+		android:text="Female" 
+		android:textSize="14sp"
+		android:layout_weight="0.5"/>
+</RadioGroup>
+
+<TextView 
+	android:text="Address: " 
+	android:layout_height="wrap_content" 
+    android:layout_width="wrap_content"
+    android:textSize="20dp"
+    android:textStyle="bold"/>
+	
+<EditText 
+	android:id="@+id/ed_patient_address" 
+	android:layout_height="wrap_content" 
+    android:layout_width="fill_parent"
+    android:singleLine="true"
+    android:textSize="20dp"/>
+
+<TextView 
+	android:text="City: " 
+	android:layout_height="wrap_content" 
+    android:layout_width="wrap_content"
+    android:textSize="20dp"
+    android:textStyle="bold"/>
+	
+<EditText 
+	android:id="@+id/ed_patient_city" 
+	android:layout_height="wrap_content" 
+    android:layout_width="fill_parent"
+    android:singleLine="true"
+    android:textSize="20dp"/>
+
+<LinearLayout
+	android:layout_height="fill_parent" 
+	android:layout_width="fill_parent"
+	android:layout_marginTop="10dp"
+	android:gravity="center_horizontal"
+	android:orientation="horizontal">
+<Button
+	android:layout_height="wrap_content" 
+	android:layout_width="fill_parent"
+	android:layout_weight="1"
+	android:layout_margin="5dp"
+	android:text="Save"
+	android:textSize="20dp"
+	android:drawableLeft="@android:drawable/ic_menu_agenda"
+	android:onClick="saveChanges"/>
+	
+<Button
+	android:layout_height="wrap_content" 
+	android:layout_width="fill_parent"
+	android:layout_weight="1"
+	android:layout_margin="5dp"
+	android:gravity="center"
+	android:text="Cancel"
+	android:textSize="20dp"
+	android:drawableLeft="@android:drawable/ic_menu_close_clear_cancel"
+	android:onClick="discardChanges"/>
+	
+</LinearLayout>
+</LinearLayout> 
+</ScrollView>
+</LinearLayout>
