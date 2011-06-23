@@ -22,7 +22,7 @@ public class MainActivity extends Activity {
 	private ProgressDialog statusDialog;
 	private ListView mainList;
 
-	private String[] items = { "Delete", "Edit", "View temperatur" };
+	private String[] items = { "Delete", "Edit", "View temperature" };
 
 	private static final String TAG = "HealthCare";
 	private static final String XmlFileName = "PATIENTS_DATA.xml";
