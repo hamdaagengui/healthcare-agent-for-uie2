@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    >
+<LinearLayout
+	android:layout_height="wrap_content" 
+	android:layout_width="fill_parent"
+	android:gravity="center_horizontal"
+	android:orientation="horizontal">
+<Button
+	android:layout_height="40dp" 
+	android:layout_width="fill_parent"
+	android:layout_weight="1"
+	android:layout_margin="5dp"
+	android:text="get online DB"
+	android:onClick="getOnlineData"/>
+	
+<Button
+	android:layout_height="40dp"
+	android:layout_width="fill_parent"
+	android:layout_weight="1"
+	android:layout_margin="5dp"
+	android:drawablePadding="0dp"
+	android:text="Add new Patient"
+	android:onClick="addPatient"/>
+</LinearLayout>
+<View
+  	android:layout_width="fill_parent"
+	android:layout_height="2px"
+	android:background="@drawable/linebg"
+	android:layout_marginBottom="10dp"
+/>
+	
+<TextView  
+	    android:layout_width="fill_parent" 
+	    android:layout_height="wrap_content" 
+		android:gravity="center_horizontal"
+	    android:text="@string/tx_main_header"
+	    android:textSize="22dp"
+	    android:textStyle="bold"
+	    android:textColor="#1B94E0"/>
+	
+
+	<ListView 
+		android:layout_height="fill_parent" 
+		android:layout_width="fill_parent"
+		android:id="@+id/list_patients" />
+		
+</LinearLayout>
