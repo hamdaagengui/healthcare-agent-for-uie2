@@ -2,25 +2,46 @@ package uie2.exercise5;
 
 import java.io.IOException;
 import java.io.InputStream;
-
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.List;
+import java.util.Random;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
-
+import com.androidplot.xy.BoundaryMode;
+import com.androidplot.xy.LineAndPointFormatter;
+import com.androidplot.xy.SimpleXYSeries;
+import com.androidplot.xy.XYPlot;
+import com.androidplot.xy.XYStepMode;
+import uie2.exercise5.PatientListFragment.OnPatientSelectedListener;
 import android.app.Activity;
+import android.app.ListFragment;
+import android.content.ContentValues;
 import android.content.Intent;
+import android.database.ContentObserver;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
+import android.util.Log;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemClickListener;
-import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
+import android.widget.TextView;
+import android.widget.Toast;
 
-public class StartActivity extends Activity implements OnItemClickListener {
+public class StartActivity extends Activity implements
+		OnPatientSelectedListener {
 	/** Called when the activity is first created. */
+	public static SimpleDateFormat sdf = new SimpleDateFormat(
+			"dd.MM.yyyy HH:mm");
+	private List<SimpleXYSeries> series;
+	private long id;
 
 	private void fillDatabase() {
 		InputStream input = null;
@@ -72,12 +93,16 @@ public class StartActivity extends Activity implements OnItemClickListener {
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
+		series = new ArrayList<SimpleXYSeries>();
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
 
+		id = -1;
+
 		fillDatabase();
 
-		ListView patients = (ListView) findViewById(R.id.listViewPatients);
+		ListFragment patients = (ListFragment) getFragmentManager()
+				.findFragmentById(R.id.PatientListFragment);
 		Cursor cursor = managedQuery(MyContentProvider.PATIENT_URI,
 				new String[] { "_id", "firstname", "lastname", "dateofbirth" },
 				null, null, " lastname ASC, firstname ASC");
@@ -86,19 +111,167 @@ public class StartActivity extends Activity implements OnItemClickListener {
 						"firstname", "dateofbirth" }, new int[] {
 						R.id.textViewName, R.id.textViewFirstname,
 						R.id.textViewDateofbirth });
-		patients.setAdapter(adapter);
-		patients.setOnItemClickListener(this);
-	}
-
-	public void onItemClick(AdapterView<?> parent, View view, int position,
-			long id) {
-		Intent i = new Intent(this, PatientActivity.class);
-		i.putExtra("patient", id);
-		startActivity(i);
+		patients.setListAdapter(adapter);
 	}
 
 	public void addPatient(View view) {
 		Intent i = new Intent(this, AddPatientActivity.class);
 		startActivity(i);
+	}
+
+	public void onPatientSelected(long patientId) {
+		this.id = patientId;
+		setPatient(patientId);
+	}
+
+	private void paint() {
+		XYPlot mySimpleXYPlot = (XYPlot) findViewById(R.id.mySimpleXYPlot);
+		for (int i = 0; i < series.size(); i++) {
+			mySimpleXYPlot.removeSeries(series.get(i));
+		}
+		series.clear();
+		// Create a formatter to use for drawing a series using
+		// LineAndPointRenderer:
+
+		Cursor types = getContentResolver().query(
+				MyContentProvider.MEASUREMENT_URI,
+				new String[] { "DISTINCT type" }, "patientId=" + id, null,
+				"type ASC");
+		while (types.moveToNext()) {
+			String type = types.getString(0);
+			LineAndPointFormatter formatter = new LineAndPointFormatter(
+					getColorByType(type), // line color
+					getColorByType(type), // point color
+					null); // fill color (optional)
+			Cursor values = getContentResolver().query(
+					MyContentProvider.MEASUREMENT_URI,
+					new String[] { "date", "time", "value" },
+					"patientID==" + id + " AND type=\"" + type + "\"", null,
+					null);
+			if (values.getCount() > 0) {
+				Log.d("1337", "" + values.getCount());
+				ArrayList<Number> x = new ArrayList<Number>(values.getCount());
+				ArrayList<Number> y = new ArrayList<Number>(values.getCount());
+				while (values.moveToNext()) {
+					x.add(toTimestamp(values.getString(0), values.getString(1)));
+					y.add(normalizeValue((values.getFloat(2)), type));
+				}
+				SimpleXYSeries serie = new SimpleXYSeries(x, y, type);
+				series.add(serie);
+				mySimpleXYPlot.addSeries(serie, formatter);
+				mySimpleXYPlot.setRangeBoundaries(0, 100, BoundaryMode.AUTO);
+				mySimpleXYPlot.setRangeLabel("");
+				mySimpleXYPlot.setRangeStepMode(XYStepMode.INCREMENT_BY_VAL);
+				mySimpleXYPlot.getGraphWidget().getRangeLabelPaint()
+						.setAlpha(0);
+				mySimpleXYPlot.setDomainLabel("Date");
+				// mySimpleXYPlot.setDomainStep(XYStepMode.INCREMENT_BY_VAL, 1);
+				mySimpleXYPlot.setDomainStep(XYStepMode.SUBDIVIDE,
+						values.getCount());
+				values.close();
+				mySimpleXYPlot.setDomainValueFormat(new MyDateFormat());
+				mySimpleXYPlot.disableAllMarkup();
+			}
+			mySimpleXYPlot.redraw();
+		}
+	}
+
+	public long toTimestamp(String date, String time) {
+		try {
+			Date d = sdf.parse(date + " " + time);
+			return d.getTime();
+		} catch (ParseException e) {
+			e.printStackTrace();
+			return 0;
+		}
+	}
+
+	public void addMeasurement(View view) {
+		ContentValues cv = new ContentValues();
+		cv.put("type", "temperature");
+		cv.put("metric", "celsius");
+		GregorianCalendar cal = new GregorianCalendar();
+		cal.setTimeInMillis(System.currentTimeMillis());
+		cv.put("date",
+				cal.get(Calendar.DAY_OF_MONTH) + "."
+						+ (cal.get(Calendar.MONTH) + 1) + "."
+						+ cal.get(Calendar.YEAR));
+		cv.put("time",
+				cal.get(Calendar.HOUR_OF_DAY) + ":" + cal.get(Calendar.MINUTE));
+		Random rand = new Random();
+		cv.put("value", Math.round((36f + 2f * rand.nextFloat()) * 10f) / 10f);
+		cv.put("patientID", id);
+		getContentResolver().insert(MyContentProvider.MEASUREMENT_URI, cv);
+		getContentResolver().notifyChange(MyContentProvider.MEASUREMENT_URI,
+				null);
+		paint();
+	}
+
+	private float normalizeValue(float value, String type) {
+		Log.d("1337", " normalize type: " + type + " value: " + value);
+		if (type.equals("temperature"))
+			return ((100 / 9) * value - 389);
+		else if (type.equals("blood pressure diastole"))
+			return (value / 2);
+		else if (type.equals("blood pressure systole"))
+			return (value / 2);
+		else if (type.equals("hearth rate"))
+			return (value / (2.1f));
+		return -1;
+	}
+
+	private Integer getColorByType(String type) {
+		if (type.equals("temperature"))
+			return Color.rgb(0, 200, 0);
+		else if (type.equals("blood pressure diastole"))
+			return Color.rgb(0, 200, 0);
+		else if (type.equals("blood pressure systole"))
+			return Color.rgb(0, 200, 0);
+		else if (type.equals("hearth rate"))
+			return Color.rgb(255, 0, 0);
+		return Color.rgb(0, 200, 0);
+	}
+
+	public void setPatient(long patientId) {
+		Cursor c = getContentResolver().query(
+				MyContentProvider.PATIENT_URI,
+				new String[] { "lastname", "firstname", "dateofbirth",
+						"gender", "address", "city", "pictureURI" },
+				"_id==" + patientId, null, null);
+		if (c.getCount() > 0) {
+			c.moveToFirst();
+			TextView lastname = (TextView) findViewById(R.id.textViewLastname);
+			lastname.setText(c.getString(0));
+			TextView firstname = (TextView) findViewById(R.id.textViewFirstname);
+			firstname.setText(c.getString(1));
+			TextView dateofbirth = (TextView) findViewById(R.id.textViewDateofbirth);
+			dateofbirth.setText(c.getString(2));
+			TextView gender = (TextView) findViewById(R.id.textViewGender);
+			gender.setText(c.getString(3));
+			TextView address = (TextView) findViewById(R.id.textViewAddress);
+			address.setText(c.getString(4));
+			TextView city = (TextView) findViewById(R.id.textViewCity);
+			city.setText(c.getString(5));
+			c.close();
+		} else {
+			Toast.makeText(this, "Datensatz wurde nicht gefunden",
+					Toast.LENGTH_LONG).show();
+			c.close();
+			return;
+		}
+
+		paint();
+
+		Handler handler = new Handler();
+
+		getContentResolver().registerContentObserver(
+				MyContentProvider.MEASUREMENT_URI, false,
+				new ContentObserver(handler) {
+					@Override
+					public void onChange(boolean selfChange) {
+						super.onChange(selfChange);
+						paint();
+					}
+				});
 	}
 }
