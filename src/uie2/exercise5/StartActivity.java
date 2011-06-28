@@ -6,7 +6,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
@@ -35,6 +34,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.widget.Button;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -47,6 +47,10 @@ public class StartActivity extends Activity implements
 	private List<SimpleXYSeries> series;
 	private List<String> activeMeasurementsInGraph;
 	private long id;
+	private Button temperature_button;
+	private Button blood_pressure_button;
+	private Button heart_rate_button;
+	private Button time_of_medication_button;
 
 	private void fillDatabase() {
 		InputStream input = null;
@@ -117,6 +121,12 @@ public class StartActivity extends Activity implements
 						R.id.textViewName, R.id.textViewFirstname,
 						R.id.textViewDateofbirth });
 		patients.setListAdapter(adapter);
+		
+		temperature_button = (Button) findViewById(R.id.temperature);
+		blood_pressure_button = (Button) findViewById(R.id.bloodpressure);
+		heart_rate_button = (Button) findViewById(R.id.heartrate);
+		time_of_medication_button = (Button) findViewById(R.id.timeofmedication);
+		
 		activeMeasurementsInGraph = new ArrayList<String>();
 		activeMeasurementsInGraph.add("temperature");
 	}
