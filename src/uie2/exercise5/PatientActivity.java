@@ -125,9 +125,11 @@ public class PatientActivity extends Activity {
 				series.add(serie);
 				mySimpleXYPlot.addSeries(serie, formatter);
 				
-				mySimpleXYPlot.setRangeBoundaries(0, 100, BoundaryMode.FIXED);
-				mySimpleXYPlot.setDomainLabel("Date");
+				mySimpleXYPlot.setRangeBoundaries(0, 100, BoundaryMode.AUTO);
 				mySimpleXYPlot.setRangeLabel("");
+				mySimpleXYPlot.setRangeStepMode(XYStepMode.INCREMENT_BY_PIXELS);
+				
+				mySimpleXYPlot.setDomainLabel("Date");
 				mySimpleXYPlot.setDomainStep(XYStepMode.SUBDIVIDE,
 						values.getCount() / 2);
 				values.close();
