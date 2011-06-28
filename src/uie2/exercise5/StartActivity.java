@@ -242,9 +242,9 @@ public class StartActivity extends Activity implements
 			c.moveToFirst();
 			TextView lastname = (TextView) findViewById(R.id.textViewLastname);
 			lastname.setText(c.getString(0));
-			TextView firstname = (TextView) findViewById(R.id.textViewFirstname);
+			TextView firstname = (TextView) findViewById(R.id.textViewDetailsFirstname);
 			firstname.setText(c.getString(1));
-			TextView dateofbirth = (TextView) findViewById(R.id.textViewDateofbirth);
+			TextView dateofbirth = (TextView) findViewById(R.id.textViewDetailsDateofbirth);
 			dateofbirth.setText(c.getString(2));
 			TextView gender = (TextView) findViewById(R.id.textViewGender);
 			gender.setText(c.getString(3));
