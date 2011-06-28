@@ -10,9 +10,9 @@ public class Database extends SQLiteOpenHelper {
 
 	public Database(Context context) {
 		super(context, db_name, null, DATABASE_VERSION);
-//		getWritableDatabase().execSQL("DROP TABLE IF EXISTS Patient");
-//		getWritableDatabase().execSQL("DROP TABLE IF EXISTS Measurement");
-//		onCreate(getWritableDatabase());
+		// getWritableDatabase().execSQL("DROP TABLE IF EXISTS Patient");
+		// getWritableDatabase().execSQL("DROP TABLE IF EXISTS Measurement");
+		// onCreate(getWritableDatabase());
 	}
 
 	@Override
@@ -31,5 +31,8 @@ public class Database extends SQLiteOpenHelper {
 				+ "_id INTEGER PRIMARY KEY NOT NULL, "
 				+ "patientID INTEGER, type STRING, "
 				+ "metric STRING, date STRING, time String, value FLOAT)");
+		db.execSQL("CREATE TABLE IF NOT EXISTS Picture ("
+				+ "_id INTEGER PRIMARY KEY NOT NULL, "
+				+ "patientID INTEGER, uri STRING)");
 	}
 }
