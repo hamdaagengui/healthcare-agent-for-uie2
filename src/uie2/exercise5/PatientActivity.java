@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.List;
 import java.util.Random;
 import com.androidplot.xy.LineAndPointFormatter;
 import com.androidplot.xy.SimpleXYSeries;
@@ -26,20 +27,22 @@ import android.widget.Toast;
 public class PatientActivity extends Activity {
 	public static SimpleDateFormat sdf = new SimpleDateFormat(
 			"dd.MM.yyyy HH:mm");
-	private SimpleXYSeries series;
+	private List<SimpleXYSeries> series;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.patient_view);
 
+		series = new ArrayList<SimpleXYSeries>();
+
 		long id = getIntent().getLongExtra("patient", -1);
 		if (id >= 0) {
 			Cursor c = getContentResolver().query(
 					MyContentProvider.PATIENT_URI,
 					new String[] { "lastname", "firstname", "dateofbirth",
-							"gender", "address", "city" }, "_id==" + id, null,
-					null);
+							"gender", "address", "city", "pictureURI" },
+					"_id==" + id, null, null);
 			if (c.getCount() > 0) {
 				c.moveToFirst();
 				TextView lastname = (TextView) findViewById(R.id.textViewLastname);
@@ -87,7 +90,10 @@ public class PatientActivity extends Activity {
 	private void paint() {
 		long id = getIntent().getLongExtra("patient", -1);
 		XYPlot mySimpleXYPlot = (XYPlot) findViewById(R.id.mySimpleXYPlot);
-		mySimpleXYPlot.removeSeries(series);
+		for (int i = 0; i < series.size(); i++) {
+			mySimpleXYPlot.removeSeries(series.get(i));
+		}
+		series.clear();
 		// Create a formatter to use for drawing a series using
 		// LineAndPointRenderer:
 		LineAndPointFormatter formatter = new LineAndPointFormatter(Color.rgb(
@@ -95,29 +101,37 @@ public class PatientActivity extends Activity {
 				Color.rgb(0, 100, 0), // point color
 				Color.rgb(150, 190, 150)); // fill color (optional)
 
-		Cursor values = getContentResolver().query(
+		Cursor types = getContentResolver().query(
 				MyContentProvider.MEASUREMENT_URI,
-				new String[] { "date", "time", "value" }, "patientID==" + id,
-				null, null);
-		if (values.getCount()>0) {
-			Log.d("1337", "" + values.getCount());
-			ArrayList<Number> x = new ArrayList<Number>(values.getCount());
-			ArrayList<Number> y = new ArrayList<Number>(values.getCount());
-			while (values.moveToNext()) {
-				x.add(toTimestamp(values.getString(0), values.getString(1)));
-				y.add(values.getFloat(2));
+				new String[] { "DISTINCT type" }, "patientId=" + id, null,
+				"type ASC");
+		while (types.moveToNext()) {
+			String type = types.getString(0);
+			Cursor values = getContentResolver().query(
+					MyContentProvider.MEASUREMENT_URI,
+					new String[] { "date", "time", "value" },
+					"patientID==" + id + " AND type=\"" + type+"\"", null, null);
+			if (values.getCount() > 0) {
+				Log.d("1337", "" + values.getCount());
+				ArrayList<Number> x = new ArrayList<Number>(values.getCount());
+				ArrayList<Number> y = new ArrayList<Number>(values.getCount());
+				while (values.moveToNext()) {
+					x.add(toTimestamp(values.getString(0), values.getString(1)));
+					y.add(values.getFloat(2));
+				}
+				SimpleXYSeries serie = new SimpleXYSeries(x, y, type);
+				series.add(serie);
+				mySimpleXYPlot.addSeries(serie, formatter);
+				mySimpleXYPlot.setDomainLabel("Date");
+				mySimpleXYPlot.setRangeLabel("");
+				mySimpleXYPlot.setDomainStep(XYStepMode.SUBDIVIDE,
+						values.getCount() / 2);
+				values.close();
+				mySimpleXYPlot.setDomainValueFormat(new MyDateFormat());
+				mySimpleXYPlot.disableAllMarkup();
 			}
-			series = new SimpleXYSeries(x, y, "Temperature");
-			mySimpleXYPlot.addSeries(series, formatter);
-			mySimpleXYPlot.setDomainLabel("Date");
-			mySimpleXYPlot.setRangeLabel("Degrees Celsius");
-			mySimpleXYPlot.setDomainStep(XYStepMode.SUBDIVIDE,
-					values.getCount() / 2);
-			values.close();
-			mySimpleXYPlot.setDomainValueFormat(new MyDateFormat());
-			mySimpleXYPlot.disableAllMarkup();
+			mySimpleXYPlot.redraw();
 		}
-		mySimpleXYPlot.redraw();
 	}
 
 	public long toTimestamp(String date, String time) {
@@ -137,14 +151,18 @@ public class PatientActivity extends Activity {
 		cv.put("metric", "celsius");
 		GregorianCalendar cal = new GregorianCalendar();
 		cal.setTimeInMillis(System.currentTimeMillis());
-		cv.put("date", cal.get(Calendar.DAY_OF_MONTH)+
-				 "." + (cal.get(Calendar.MONTH)+1)+ "." + cal.get(Calendar.YEAR));
-		cv.put("time", cal.get(Calendar.HOUR_OF_DAY)+ ":" + cal.get(Calendar.MINUTE));
+		cv.put("date",
+				cal.get(Calendar.DAY_OF_MONTH) + "."
+						+ (cal.get(Calendar.MONTH) + 1) + "."
+						+ cal.get(Calendar.YEAR));
+		cv.put("time",
+				cal.get(Calendar.HOUR_OF_DAY) + ":" + cal.get(Calendar.MINUTE));
 		Random rand = new Random();
 		cv.put("value", Math.round((36f + 2f * rand.nextFloat()) * 10f) / 10f);
 		cv.put("patientID", id);
 		getContentResolver().insert(MyContentProvider.MEASUREMENT_URI, cv);
-		getContentResolver().notifyChange(MyContentProvider.MEASUREMENT_URI, null);
+		getContentResolver().notifyChange(MyContentProvider.MEASUREMENT_URI,
+				null);
 		paint();
 	}
 }
