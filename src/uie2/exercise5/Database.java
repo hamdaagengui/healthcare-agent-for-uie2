@@ -26,13 +26,10 @@ public class Database extends SQLiteOpenHelper {
 				+ "_id INTEGER PRIMARY KEY NOT NULL, "
 				+ "lastname VARCHAR, firstname VARCHAR, "
 				+ " dateofbirth VARCHAR, gender VARCHAR(1), "
-				+ "address VARCHAR, city VARCHAR)");
+				+ "address VARCHAR, city VARCHAR, pictureURI String)");
 		db.execSQL("CREATE TABLE IF NOT EXISTS Measurement ("
 				+ "_id INTEGER PRIMARY KEY NOT NULL, "
 				+ "patientID INTEGER, type STRING, "
 				+ "metric STRING, date STRING, time String, value FLOAT)");
-		db.execSQL("CREATE TABLE IF NOT EXISTS Picture ("
-				+ "_id INTEGER PRIMARY KEY NOT NULL, "
-				+ "patientID INTEGER, uri STRING)");
 	}
 }
