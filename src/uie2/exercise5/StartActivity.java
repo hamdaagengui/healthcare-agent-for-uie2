@@ -144,10 +144,11 @@ public class StartActivity extends Activity implements
 					getColorByType(type), // line color
 					getColorByType(type), // point color
 					null); // fill color (optional)
-			//Paint lineP = new Paint();
-			//lineP.setStyle(Paint.Style.STROKE);
-			//lineP.setStrokeWidth(8);
-			//formatter.setLinePaint(lineP);
+			Paint lineP = new Paint();
+			lineP.setStyle(Paint.Style.STROKE);
+			lineP.setStrokeWidth(8);
+			lineP.setColor(getColorByType(type));
+			formatter.setLinePaint(lineP);
 			Cursor values = getContentResolver().query(
 					MyContentProvider.MEASUREMENT_URI,
 					new String[] { "date", "time", "value" },
