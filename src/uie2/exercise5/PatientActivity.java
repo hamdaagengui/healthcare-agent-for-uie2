@@ -1,5 +1,7 @@
 package uie2.exercise5;
 
+import java.text.Format;
+import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -124,14 +126,13 @@ public class PatientActivity extends Activity {
 				SimpleXYSeries serie = new SimpleXYSeries(x, y, type);
 				series.add(serie);
 				mySimpleXYPlot.addSeries(serie, formatter);
-				
 				mySimpleXYPlot.setRangeBoundaries(0, 100, BoundaryMode.AUTO);
 				mySimpleXYPlot.setRangeLabel("");
-				mySimpleXYPlot.setRangeStepMode(XYStepMode.INCREMENT_BY_PIXELS);
-				
+				mySimpleXYPlot.setRangeStepMode(XYStepMode.INCREMENT_BY_VAL);
+				mySimpleXYPlot.getGraphWidget().getRangeLabelPaint().setAlpha(0);
 				mySimpleXYPlot.setDomainLabel("Date");
-				mySimpleXYPlot.setDomainStep(XYStepMode.SUBDIVIDE,
-						values.getCount() / 2);
+				//mySimpleXYPlot.setDomainStep(XYStepMode.INCREMENT_BY_VAL, 1);
+				mySimpleXYPlot.setDomainStep(XYStepMode.SUBDIVIDE, values.getCount());
 				values.close();
 				mySimpleXYPlot.setDomainValueFormat(new MyDateFormat());
 				mySimpleXYPlot.disableAllMarkup();
