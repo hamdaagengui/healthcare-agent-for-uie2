@@ -6,6 +6,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
@@ -44,6 +45,7 @@ public class StartActivity extends Activity implements
 	public static SimpleDateFormat sdf = new SimpleDateFormat(
 			"dd.MM.yyyy HH:mm");
 	private List<SimpleXYSeries> series;
+	private List<String> activeMeasurementsInGraph;
 	private long id;
 
 	private void fillDatabase() {
@@ -115,6 +117,8 @@ public class StartActivity extends Activity implements
 						R.id.textViewName, R.id.textViewFirstname,
 						R.id.textViewDateofbirth });
 		patients.setListAdapter(adapter);
+		activeMeasurementsInGraph = new ArrayList<String>();
+		activeMeasurementsInGraph.add("temperature");
 	}
 
 	@Override
@@ -144,6 +148,8 @@ public class StartActivity extends Activity implements
 				"type ASC");
 		while (types.moveToNext()) {
 			String type = types.getString(0);
+			//if(activeMeasurementsInGraph.contains(type)) 
+			Log.d("1338", "contains: "+ type);
 			LineAndPointFormatter formatter = new LineAndPointFormatter(
 					getColorByType(type), // line color
 					getColorByType(type), // point color
@@ -248,7 +254,17 @@ public class StartActivity extends Activity implements
 		else if(type.equals("hearth rate")) return Color.rgb(255,0,0);
 		return Color.rgb(0, 200, 0);
 	}
-
+	
+	private void chooseMeasurementType(String type)
+	{
+		if(activeMeasurementsInGraph.isEmpty()) activeMeasurementsInGraph.add(type);
+		else if(activeMeasurementsInGraph.size()==1) activeMeasurementsInGraph.add(type);
+		else
+		{
+			activeMeasurementsInGraph.remove(activeMeasurementsInGraph.size()-1);
+			activeMeasurementsInGraph.add(type);
+		}
+	}
 	public void setPatient(long patientId) {
 		Cursor c = getContentResolver().query(
 				MyContentProvider.PATIENT_URI,
