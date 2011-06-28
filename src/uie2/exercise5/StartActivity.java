@@ -31,7 +31,9 @@ import android.graphics.Paint;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
-import android.view.View;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -115,9 +117,11 @@ public class StartActivity extends Activity implements
 		patients.setListAdapter(adapter);
 	}
 
-	public void addPatient(View view) {
-		Intent i = new Intent(this, AddPatientActivity.class);
-		startActivity(i);
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		MenuInflater inflater = getMenuInflater();
+		inflater.inflate(R.menu.menu, menu);
+		return true;
 	}
 
 	public void onPatientSelected(long patientId) {
@@ -193,25 +197,34 @@ public class StartActivity extends Activity implements
 		}
 	}
 
-	public void addMeasurement(View view) {
-		ContentValues cv = new ContentValues();
-		cv.put("type", "temperature");
-		cv.put("metric", "celsius");
-		GregorianCalendar cal = new GregorianCalendar();
-		cal.setTimeInMillis(System.currentTimeMillis());
-		cv.put("date",
-				cal.get(Calendar.DAY_OF_MONTH) + "."
-						+ (cal.get(Calendar.MONTH) + 1) + "."
-						+ cal.get(Calendar.YEAR));
-		cv.put("time",
-				cal.get(Calendar.HOUR_OF_DAY) + ":" + cal.get(Calendar.MINUTE));
-		Random rand = new Random();
-		cv.put("value", Math.round((36f + 2f * rand.nextFloat()) * 10f) / 10f);
-		cv.put("patientID", id);
-		getContentResolver().insert(MyContentProvider.MEASUREMENT_URI, cv);
-		getContentResolver().notifyChange(MyContentProvider.MEASUREMENT_URI,
-				null);
-		paint();
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		if (item.getItemId() == R.id.add_patient) {
+			Intent i = new Intent(this, AddPatientActivity.class);
+			startActivity(i);
+		} else if (item.getItemId() == R.id.add_measurement) {
+			ContentValues cv = new ContentValues();
+			cv.put("type", "temperature");
+			cv.put("metric", "celsius");
+			GregorianCalendar cal = new GregorianCalendar();
+			cal.setTimeInMillis(System.currentTimeMillis());
+			cv.put("date",
+					cal.get(Calendar.DAY_OF_MONTH) + "."
+							+ (cal.get(Calendar.MONTH) + 1) + "."
+							+ cal.get(Calendar.YEAR));
+			cv.put("time",
+					cal.get(Calendar.HOUR_OF_DAY) + ":"
+							+ cal.get(Calendar.MINUTE));
+			Random rand = new Random();
+			cv.put("value",
+					Math.round((36f + 2f * rand.nextFloat()) * 10f) / 10f);
+			cv.put("patientID", id);
+			getContentResolver().insert(MyContentProvider.MEASUREMENT_URI, cv);
+			getContentResolver().notifyChange(
+					MyContentProvider.MEASUREMENT_URI, null);
+			paint();
+		}
+		return super.onOptionsItemSelected(item);
 	}
 
 	private float normalizeValue(float value, String type) {
