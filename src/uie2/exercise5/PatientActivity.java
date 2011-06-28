@@ -8,6 +8,8 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Random;
+
+import com.androidplot.xy.BoundaryMode;
 import com.androidplot.xy.LineAndPointFormatter;
 import com.androidplot.xy.SimpleXYSeries;
 import com.androidplot.xy.XYPlot;
@@ -122,6 +124,8 @@ public class PatientActivity extends Activity {
 				SimpleXYSeries serie = new SimpleXYSeries(x, y, type);
 				series.add(serie);
 				mySimpleXYPlot.addSeries(serie, formatter);
+				
+				mySimpleXYPlot.setRangeBoundaries(0, 100, BoundaryMode.FIXED);
 				mySimpleXYPlot.setDomainLabel("Date");
 				mySimpleXYPlot.setRangeLabel("");
 				mySimpleXYPlot.setDomainStep(XYStepMode.SUBDIVIDE,
