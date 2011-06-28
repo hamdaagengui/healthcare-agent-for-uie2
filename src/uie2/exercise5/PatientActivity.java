@@ -32,14 +32,13 @@ public class PatientActivity extends Activity {
 	public static SimpleDateFormat sdf = new SimpleDateFormat(
 			"dd.MM.yyyy HH:mm");
 	private List<SimpleXYSeries> series;
-
+	private String[] MeasurementsInGraph;
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.patient_view);
 
 		series = new ArrayList<SimpleXYSeries>();
-
 		long id = getIntent().getLongExtra("patient", -1);
 		if (id >= 0) {
 			Cursor c = getContentResolver().query(
@@ -131,6 +130,7 @@ public class PatientActivity extends Activity {
 				mySimpleXYPlot.setRangeLabel("");
 				mySimpleXYPlot.setRangeStepMode(XYStepMode.INCREMENT_BY_VAL);
 				mySimpleXYPlot.getGraphWidget().getRangeLabelPaint().setAlpha(0);
+				mySimpleXYPlot.getGraphWidget().getRangeOriginLabelPaint().setAlpha(0);
 				mySimpleXYPlot.setDomainLabel("Date");
 				//mySimpleXYPlot.setDomainStep(XYStepMode.INCREMENT_BY_VAL, 1);
 				mySimpleXYPlot.setDomainStep(XYStepMode.SUBDIVIDE, values.getCount());
@@ -186,9 +186,10 @@ public class PatientActivity extends Activity {
 	private Integer getColorByType(String type)
 	{
 		if(type.equals("temperature")) return Color.rgb(0, 200, 0);
-		else if(type.equals("blood pressure diastole")) return Color.rgb(0, 200, 0);
-		else if(type.equals("blood pressure systole")) return Color.rgb(0, 200, 0);
-		else if(type.equals("hearth rate")) return Color.rgb(255, 0, 0);
+		else if(type.equals("blood pressure diastole")) return Color.rgb(127, 219, 255);
+		else if(type.equals("blood pressure systole")) return Color.rgb(98,12,67);
+		else if(type.equals("hearth rate")) return Color.rgb(255,0,0);
 		return Color.rgb(0, 200, 0);
 	}
 }
+
