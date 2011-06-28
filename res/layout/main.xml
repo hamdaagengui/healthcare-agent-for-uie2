@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-	android:orientation="vertical" android:layout_width="fill_parent"
-	android:layout_height="fill_parent">
-	<Button android:text="Add Patient" android:id="@+id/add_patient" android:onClick="addPatient"
-		android:layout_width="fill_parent" android:layout_height="wrap_content"></Button>
-
-	<ListView android:layout_height="fill_parent" android:id="@+id/listViewPatients"
-		android:layout_width="fill_parent"></ListView>
+	android:orientation="horizontal" android:layout_width="fill_parent"
+	android:layout_height="fill_parent">		
+    <fragment class="uie2.exercise5.PatientListFragment"
+            android:id="@+id/PatientListFragment" android:layout_weight="3"
+            android:layout_width="match_parent" android:layout_height="match_parent" />
+	
+    <fragment class="uie2.exercise5.PatientFragment"
+            android:id="@+id/PatientFragment" android:layout_weight="1"
+            android:layout_width="match_parent" android:layout_height="match_parent" />
 </LinearLayout>

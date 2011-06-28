@@ -1,14 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
 	android:layout_width="fill_parent" android:layout_height="fill_parent">
-	<TextView android:id="@+id/textViewName" android:text="Name" android:layout_width="wrap_content"
-		android:layout_height="wrap_content"></TextView>
-	<TextView android:id="@+id/textView1" android:layout_width="wrap_content"
-		android:layout_height="wrap_content" android:text=", "></TextView>
-	<TextView android:id="@+id/textViewFirstname" android:text="Firstname" 
-		android:layout_width="wrap_content" android:layout_height="wrap_content"></TextView>
-	<TextView android:id="@+id/textView2" android:layout_width="wrap_content"
-		android:layout_height="wrap_content" android:text=", "></TextView>
-	<TextView android:id="@+id/textViewDateofbirth"
-		android:layout_width="wrap_content" android:layout_height="wrap_content"></TextView>
+	<TableLayout android:layout_width="fill_parent"
+		android:layout_height="wrap_content">
+		<TableRow>
+			<LinearLayout android:layout_width="fill_parent"
+				android:layout_height="fill_parent" android:layout_weight="1">
+				<ImageView android:layout_width="wrap_content"
+					android:layout_height="fill_parent" android:src="@drawable/avatar"></ImageView>
+			</LinearLayout>
+			<TableLayout android:layout_width="fill_parent"
+				android:layout_height="fill_parent" android:layout_weight="10">
+				<TableRow>
+					<TextView android:id="@+id/textView0" android:text="Name:"  android:padding="5dp"
+						android:layout_width="wrap_content" android:layout_height="wrap_content"></TextView>
+					<TextView android:id="@+id/textViewName" android:text="Max"
+						android:layout_width="wrap_content" android:layout_height="wrap_content"></TextView>
+				</TableRow>
+				<TableRow>
+					<TextView android:id="@+id/textView1"  android:padding="5dp"
+						android:layout_width="wrap_content" android:layout_height="wrap_content"
+						android:text="Firstname:"></TextView>
+					<TextView android:id="@+id/textViewFirstname"
+						android:text="Mustermann" android:layout_width="wrap_content"
+						android:layout_height="wrap_content"></TextView>
+				</TableRow>
+				<TableRow>
+					<TextView android:id="@+id/textView2"  android:padding="5dp"
+						android:layout_width="wrap_content" android:layout_height="wrap_content"
+						android:text="Date of Birth:"></TextView>
+					<TextView android:id="@+id/textViewDateofbirth" android:padding="5dp"
+						android:layout_width="wrap_content" android:layout_height="wrap_content"
+						android:text="01.01.1970"></TextView>
+				</TableRow>
+			</TableLayout>
+		</TableRow>
+	</TableLayout>
 </LinearLayout>
