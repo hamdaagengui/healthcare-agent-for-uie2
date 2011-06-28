@@ -99,7 +99,7 @@ public class PatientActivity extends Activity {
 		LineAndPointFormatter formatter = new LineAndPointFormatter(Color.rgb(
 				0, 200, 0), // line color
 				Color.rgb(0, 100, 0), // point color
-				Color.rgb(150, 190, 150)); // fill color (optional)
+				null); // fill color (optional)
 
 		Cursor types = getContentResolver().query(
 				MyContentProvider.MEASUREMENT_URI,
