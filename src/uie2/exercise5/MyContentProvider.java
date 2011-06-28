@@ -11,13 +11,18 @@ import android.net.Uri;
 public class MyContentProvider extends ContentProvider {
 	private static final int MEASUREMENT = 0;
 	private static final int PATIENT = 1;
+	private static final int PICTURE = 2;
 	private static final String AUTHORITY = "uie2.exercise5";
 	private static final String PATIENT_TABLE_NAME = "Patient";
 	private static final String MEASUREMENT_TABLE_NAME = "Measurement";
+	private static final String PICTURE_TABLE_NAME = "Picture";
 	public static final Uri PATIENT_URI = Uri.parse("content://" + AUTHORITY
 			+ "/Patient");
 	public static final Uri MEASUREMENT_URI = Uri.parse("content://"
 			+ AUTHORITY + "/Measurement");
+
+	public static final Uri PICTURE_URI = Uri.parse("content://" + AUTHORITY
+			+ "/Picture");
 	private Database database;
 	private UriMatcher uriMatcher;
 
@@ -44,6 +49,11 @@ public class MyContentProvider extends ContentProvider {
 					MEASUREMENT_TABLE_NAME, selection, selectionArgs);
 			getContext().getContentResolver().notifyChange(uri, null);
 			return count;
+		case PICTURE:
+			count = database.getWritableDatabase().delete(PICTURE_TABLE_NAME,
+					selection, selectionArgs);
+			getContext().getContentResolver().notifyChange(uri, null);
+			return count;
 		default:
 			throw new IllegalArgumentException("Unknown URI" + uri);
 		}
@@ -56,6 +66,8 @@ public class MyContentProvider extends ContentProvider {
 			return Patient.class.getName();
 		case MEASUREMENT:
 			return Measurement.class.getName();
+		case PICTURE:
+			return Uri.class.getName();
 		default:
 			throw new IllegalArgumentException("Unknown URI" + uri);
 		}
@@ -81,6 +93,14 @@ public class MyContentProvider extends ContentProvider {
 				return ContentUris.withAppendedId(MEASUREMENT_URI, rowID);
 			}
 			break;
+		case PICTURE:
+			rowID = database.getWritableDatabase().insert(PICTURE_TABLE_NAME,
+					null, values);
+			if (rowID >= 0) {
+				getContext().getContentResolver().notifyChange(uri, null);
+				return ContentUris.withAppendedId(PICTURE_URI, rowID);
+			}
+			break;
 		default:
 			throw new IllegalArgumentException("Unknown URI" + uri);
 		}
@@ -100,6 +120,10 @@ public class MyContentProvider extends ContentProvider {
 			return database.getReadableDatabase()
 					.query(MEASUREMENT_TABLE_NAME, projection, selection,
 							selectionArgs, null, null, sortOrder);
+		case PICTURE:
+			return database.getReadableDatabase()
+					.query(PICTURE_TABLE_NAME, projection, selection,
+							selectionArgs, null, null, sortOrder);
 		default:
 			throw new IllegalArgumentException("Unknown URI" + uri);
 		}
@@ -118,6 +142,11 @@ public class MyContentProvider extends ContentProvider {
 		case MEASUREMENT:
 			count = database.getWritableDatabase().update(
 					MEASUREMENT_TABLE_NAME, values, selection, selectionArgs);
+			getContext().getContentResolver().notifyChange(uri, null);
+			return count;
+		case PICTURE:
+			count = database.getWritableDatabase().update(
+					PICTURE_TABLE_NAME, values, selection, selectionArgs);
 			getContext().getContentResolver().notifyChange(uri, null);
 			return count;
 		default:
