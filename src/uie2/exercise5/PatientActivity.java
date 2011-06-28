@@ -100,16 +100,17 @@ public class PatientActivity extends Activity {
 		series.clear();
 		// Create a formatter to use for drawing a series using
 		// LineAndPointRenderer:
-		LineAndPointFormatter formatter = new LineAndPointFormatter(Color.rgb(
-				0, 200, 0), // line color
-				Color.rgb(0, 100, 0), // point color
-				null); // fill color (optional)
+
 
 		Cursor types = getContentResolver().query(
 				MyContentProvider.MEASUREMENT_URI,
 				new String[] { "DISTINCT type" }, "patientId=" + id, null,
 				"type ASC");
 		while (types.moveToNext()) {
+			LineAndPointFormatter formatter = new LineAndPointFormatter(Color.rgb(
+					0, 200, 0), // line color
+					Color.rgb(0, 100, 0), // point color
+					null); // fill color (optional)
 			String type = types.getString(0);
 			Cursor values = getContentResolver().query(
 					MyContentProvider.MEASUREMENT_URI,
@@ -172,14 +173,22 @@ public class PatientActivity extends Activity {
 				null);
 		paint();
 	}
-	
 	private float normalizeValue(float value, String type)
 	{
 		Log.d("1337", " normalize type: "+type+" value: "+value);
 		if(type.equals("temperature")) return ((100/9)*value-389);
 		else if(type.equals("blood pressure diastole")) return (value/2);
 		else if(type.equals("blood pressure systole")) return (value/2);
-		else if(type.equals("heartrate")) return (value/(2.1f));
+		else if(type.equals("hearth rate")) return (value/(2.1f));
 		return -1;
+	}
+	
+	private Integer getColorByType(String type)
+	{
+		if(type.equals("temperature")) return Color.rgb(0, 100, 0);
+		else if(type.equals("blood pressure diastole")) return Color.rgb(0, 100, 0);
+		else if(type.equals("blood pressure systole")) return Color.rgb(0, 100, 0);
+		else if(type.equals("hearth rate")) return Color.rgb(255, 0, 0);
+		return Color.rgb(0, 100, 0);
 	}
 }
