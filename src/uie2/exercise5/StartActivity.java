@@ -34,17 +34,25 @@ public class StartActivity extends Activity implements OnItemClickListener {
 			NodeList patientList = doc.getElementsByTagName("patient");
 			for (int i = 0; i < patientList.getLength(); i++) {
 				Patient patient = new Patient(patientList.item(i));
-				getContentResolver().insert(MyContentProvider.PATIENT_URI,
-						patient.getValues());
+				try {
+					getContentResolver().insert(MyContentProvider.PATIENT_URI,
+							patient.getValues());
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 
 				NodeList m_nodes = patientList.item(i).getChildNodes().item(1)
 						.getChildNodes();
 				for (int j = 1; j < m_nodes.getLength(); j += 2) {
 					Measurement measurement = new Measurement(m_nodes.item(j),
 							patient.getId());
-					getContentResolver().insert(
-							MyContentProvider.MEASUREMENT_URI,
-							measurement.getValues());
+					try {
+						getContentResolver().insert(
+								MyContentProvider.MEASUREMENT_URI,
+								measurement.getValues());
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
 				}
 			}
 			getContentResolver().notifyChange(

@@ -10,9 +10,9 @@ public class Database extends SQLiteOpenHelper {
 
 	public Database(Context context) {
 		super(context, db_name, null, DATABASE_VERSION);
-//		 getWritableDatabase().execSQL("DROP TABLE IF EXISTS Patient");
-//		 getWritableDatabase().execSQL("DROP TABLE IF EXISTS Measurement");
-//		 onCreate(getWritableDatabase());
+		 getWritableDatabase().execSQL("DROP TABLE IF EXISTS Patient");
+		 getWritableDatabase().execSQL("DROP TABLE IF EXISTS Measurement");
+		 onCreate(getWritableDatabase());
 	}
 
 	@Override
