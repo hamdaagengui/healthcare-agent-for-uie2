@@ -1,7 +1,5 @@
 package uie2.exercise5;
 
-import java.text.Format;
-import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -10,7 +8,6 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Random;
-
 import com.androidplot.xy.BoundaryMode;
 import com.androidplot.xy.LineAndPointFormatter;
 import com.androidplot.xy.SimpleXYSeries;
@@ -37,7 +34,7 @@ public class PatientActivity extends Activity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.patient_view);
+		setContentView(R.layout.main);
 
 		series = new ArrayList<SimpleXYSeries>();
 		long id = getIntent().getLongExtra("patient", -1);
