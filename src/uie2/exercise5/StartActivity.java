@@ -148,8 +148,8 @@ public class StartActivity extends Activity implements
 				"type ASC");
 		while (types.moveToNext()) {
 			String type = types.getString(0);
-			//if(activeMeasurementsInGraph.contains(type)) 
-			Log.d("1338", "contains: "+ type);
+			if(activeMeasurementsInGraph.contains(type))
+			{
 			LineAndPointFormatter formatter = new LineAndPointFormatter(
 					getColorByType(type), // line color
 					getColorByType(type), // point color
@@ -190,6 +190,7 @@ public class StartActivity extends Activity implements
 				mySimpleXYPlot.disableAllMarkup();
 			}
 			mySimpleXYPlot.redraw();
+			}
 		}
 	}
 
@@ -261,7 +262,7 @@ public class StartActivity extends Activity implements
 		else if(activeMeasurementsInGraph.size()==1) activeMeasurementsInGraph.add(type);
 		else
 		{
-			activeMeasurementsInGraph.remove(activeMeasurementsInGraph.size()-1);
+			activeMeasurementsInGraph.remove(0);
 			activeMeasurementsInGraph.add(type);
 		}
 	}
