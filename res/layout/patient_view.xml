@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="fill_parent" android:layout_height="fill_parent"
+	android:orientation="vertical">
+	<Button android:layout_width="fill_parent"
+		android:layout_height="wrap_content" android:text="Add Measurment" android:onClick="addMeasurement"></Button>
+	<TableLayout android:layout_width="fill_parent" android:id="@+id/tableLayout"
+		android:layout_height="wrap_content">
+		<TableRow>
+			<TextView android:text="Last name:" android:id="@+id/textView1"
+				android:layout_weight="1" android:layout_width="fill_parent"
+				android:layout_height="wrap_content"></TextView>
+			<TextView android:text="TextView" android:id="@+id/textViewLastname"
+				android:layout_weight="1" android:layout_width="fill_parent"
+				android:layout_height="wrap_content"></TextView>
+		</TableRow>
+		<TableRow>
+			<TextView android:text="First name:" android:id="@+id/textView2"
+				android:layout_weight="1" android:layout_width="fill_parent"
+				android:layout_height="wrap_content"></TextView>
+			<TextView android:text="TextView" android:id="@+id/textViewFirstname"
+				android:layout_weight="1" android:layout_width="fill_parent"
+				android:layout_height="wrap_content"></TextView>
+		</TableRow>
+		<TableRow>
+			<TextView android:text="Date of birth:" android:id="@+id/textView3"
+				android:layout_weight="1" android:layout_width="fill_parent"
+				android:layout_height="wrap_content"></TextView>
+			<TextView android:text="TextView" android:id="@+id/textViewDateofbirth"
+				android:layout_weight="1" android:layout_width="fill_parent"
+				android:layout_height="wrap_content"></TextView>
+		</TableRow>
+		<TableRow>
+			<TextView android:text="Address:" android:id="@+id/textView4"
+				android:layout_weight="1" android:layout_width="fill_parent"
+				android:layout_height="wrap_content"></TextView>
+			<TextView android:text="TextView" android:id="@+id/textViewAddress"
+				android:layout_weight="1" android:layout_width="fill_parent"
+				android:layout_height="wrap_content"></TextView>
+		</TableRow>
+		<TableRow>
+			<TextView android:text="City:" android:id="@+id/textView5"
+				android:layout_weight="1" android:layout_width="fill_parent"
+				android:layout_height="wrap_content"></TextView>
+			<TextView android:text="TextView" android:id="@+id/textViewCity"
+				android:layout_weight="1" android:layout_width="fill_parent"
+				android:layout_height="wrap_content"></TextView>
+		</TableRow>
+		<TableRow>
+			<TextView android:text="Gender:" android:id="@+id/textView1"
+				android:layout_weight="1" android:layout_width="fill_parent"
+				android:layout_height="wrap_content"></TextView>
+			<TextView android:text="TextView" android:id="@+id/textViewGender"
+				android:layout_weight="1" android:layout_width="fill_parent"
+				android:layout_height="wrap_content"></TextView>
+		</TableRow>
+	</TableLayout>
+	<LinearLayout android:layout_width="fill_parent"
+		android:layout_height="fill_parent">
+		<com.androidplot.xy.XYPlot android:id="@+id/mySimpleXYPlot"
+			android:layout_width="fill_parent" android:layout_height="fill_parent"
+			android:layout_marginTop="10px" android:layout_marginLeft="10px"
+			android:layout_marginRight="10px" title="Measurements" />
+	</LinearLayout>
+</LinearLayout>

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="fill_parent" android:layout_height="fill_parent"
+	android:orientation="vertical">
+	<ScrollView android:layout_width="fill_parent"
+		android:layout_height="fill_parent">
+		<LinearLayout android:id="@+id/linearLayout1"
+			android:layout_width="fill_parent" android:orientation="vertical"
+			android:layout_height="fill_parent">
+			<TextView android:layout_width="wrap_content" android:id="@+id/textView1"
+				android:layout_height="wrap_content" android:text="First name:"></TextView>
+			<EditText android:text="" android:layout_width="fill_parent"
+				android:id="@+id/first_name" android:layout_height="wrap_content"></EditText>
+			<TextView android:layout_width="fill_parent" android:id="@+id/textView2"
+				android:layout_height="wrap_content" android:text="Last name:"></TextView>
+			<EditText android:text="" android:layout_width="fill_parent"
+				android:id="@+id/last_name" android:layout_height="wrap_content"></EditText>
+			<TextView android:layout_width="wrap_content" android:id="@+id/textView2"
+				android:layout_height="wrap_content" android:text="Date of birth:"></TextView>
+			<DatePicker android:layout_width="wrap_content"
+				android:id="@+id/dateofbirth" android:layout_height="wrap_content">
+			</DatePicker>
+			<TextView android:layout_width="wrap_content" android:id="@+id/textView2"
+				android:layout_height="wrap_content" android:text="Gender:"></TextView>
+			<RadioGroup android:layout_width="wrap_content"
+				android:id="@+id/gender" android:layout_height="wrap_content">
+				<RadioButton android:id="@+id/male" android:text="Male"
+					android:checked="true" android:layout_width="wrap_content"
+					android:layout_height="wrap_content"></RadioButton>
+				<RadioButton android:id="@+id/female" android:text="Female"
+					android:layout_width="wrap_content" android:layout_height="wrap_content"></RadioButton>
+			</RadioGroup>
+			<TextView android:layout_width="wrap_content" android:id="@+id/textView2"
+				android:layout_height="wrap_content" android:text="Address:"></TextView>
+			<EditText android:text="" android:layout_width="fill_parent"
+				android:id="@+id/address" android:layout_height="wrap_content"></EditText>
+			<TextView android:layout_width="wrap_content" android:id="@+id/textView3"
+				android:layout_height="wrap_content" android:text="City:"></TextView>
+			<EditText android:text="" android:layout_width="fill_parent"
+				android:id="@+id/city" android:layout_height="wrap_content"></EditText>
+			<Button android:layout_width="fill_parent" android:text="Done"
+				android:layout_height="wrap_content" android:onClick="done"
+				android:id="@+id/done"></Button>
+		</LinearLayout>
+	</ScrollView>
+</LinearLayout>
