@@ -21,6 +21,7 @@ import android.content.ContentValues;
 import android.database.ContentObserver;
 import android.database.Cursor;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -111,6 +112,10 @@ public class PatientActivity extends Activity {
 					getColorByType(type), // line color
 					getColorByType(type), // point color
 					null); // fill color (optional)
+			Paint lineP = new Paint();
+			lineP.setStyle(Paint.Style.STROKE);
+			lineP.setStrokeWidth(8);
+			formatter.setLinePaint(lineP);
 			Cursor values = getContentResolver().query(
 					MyContentProvider.MEASUREMENT_URI,
 					new String[] { "date", "time", "value" },
