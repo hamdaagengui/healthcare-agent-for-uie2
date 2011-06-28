@@ -54,10 +54,29 @@
 		</TableRow>
 	</TableLayout>
 	<LinearLayout android:layout_width="fill_parent"
-		android:layout_height="fill_parent">
-		<com.androidplot.xy.XYPlot android:id="@+id/mySimpleXYPlot"
-			android:layout_width="fill_parent" android:layout_height="fill_parent"
-			android:layout_marginTop="10px" android:layout_marginLeft="10px"
-			android:layout_marginRight="10px" title="Measurements" />
+		android:layout_height="fill_parent" android:orientation="horizontal">
+		<LinearLayout android:layout_width="fill_parent"
+			android:layout_height="fill_parent" android:layout_weight="1">
+			<com.androidplot.xy.XYPlot android:id="@+id/mySimpleXYPlot"
+				android:layout_width="fill_parent" android:layout_height="fill_parent"
+				android:layout_marginTop="10px" android:layout_marginLeft="10px"
+				android:layout_marginRight="10px" title="Measurements" />
+		</LinearLayout>
+		<LinearLayout android:orientation="vertical" android:layout_margin="10px"
+			android:layout_height="fill_parent" android:layout_width="fill_parent"
+			android:layout_weight="5">
+			<Button android:text="Temperature" android:id="@+id/temperature"
+				android:layout_weight="1" android:layout_width="fill_parent"
+				android:layout_height="wrap_content"></Button>
+			<Button android:text="Heart Rate" android:id="@+id/heartrate"
+				android:layout_weight="1" android:layout_width="fill_parent"
+				android:layout_height="wrap_content"></Button>
+			<Button android:text="Time of Medication" android:id="@+id/timeofmedication"
+				android:layout_weight="1" android:layout_width="fill_parent"
+				android:layout_height="wrap_content"></Button>
+			<Button android:text="Blood Pressure" android:id="@+id/bloodpressure"
+				android:layout_weight="1" android:layout_width="fill_parent"
+				android:layout_height="wrap_content"></Button>
+		</LinearLayout>
 	</LinearLayout>
 </LinearLayout>
