@@ -26,6 +26,14 @@
   			<measurement type="blood pressure diastole" metric="mmHg" date="04.06.2011" time="19:08">90</measurement>
   			<measurement type="blood pressure diastole" metric="mmHg" date="05.06.2011" time="10:33">100</measurement>
   			<measurement type="blood pressure diastole" metric="mmHg" date="06.06.2011" time="11:36">90</measurement>
+  			<measurement type="hearth rate" metric="bpm" date="30.05.2011" time="12:34">10</measurement>
+  			<measurement type="hearth rate" metric="bpm" date="31.05.2011" time="16:12">40</measurement>
+  			<measurement type="hearth rate" metric="bpm" date="01.06.2011" time="09:48">80</measurement>
+  			<measurement type="hearth rate" metric="bpm" date="02.06.2011" time="14:55">120</measurement>
+  			<measurement type="hearth rate" metric="bpm" date="03.06.2011" time="11:11">180</measurement>
+  			<measurement type="hearth rate" metric="bpm" date="04.06.2011" time="19:08">80</measurement>
+  			<measurement type="hearth rate" metric="bpm" date="05.06.2011" time="10:33">30</measurement>
+  			<measurement type="hearth rate" metric="bpm" date="06.06.2011" time="11:36">0</measurement>
   		</measurements>
   	</patient>
   	<patient id="396452895" lastname="Müller" firstname="Heinz" dateofbirth="11.07.1969" gender="m" address="Universitätsstraße 2" city="Essen">
@@ -38,6 +46,30 @@
   			<measurement type="temperature" metric="celsius" date="04.06.2011" time="13:59">37.7</measurement>
   			<measurement type="temperature" metric="celsius" date="05.06.2011" time="16:21">37.0</measurement>
   			<measurement type="temperature" metric="celsius" date="06.06.2011" time="13:01">36.7</measurement>
+  			<measurement type="blood pressure systole" metric="mmHg" date="30.05.2011" time="12:34">130</measurement>
+  			<measurement type="blood pressure systole" metric="mmHg" date="31.05.2011" time="16:12">135</measurement>
+  			<measurement type="blood pressure systole" metric="mmHg" date="01.06.2011" time="09:48">130</measurement>
+  			<measurement type="blood pressure systole" metric="mmHg" date="02.06.2011" time="14:55">140</measurement>
+  			<measurement type="blood pressure systole" metric="mmHg" date="03.06.2011" time="11:11">150</measurement>
+  			<measurement type="blood pressure systole" metric="mmHg" date="04.06.2011" time="19:08">160</measurement>
+  			<measurement type="blood pressure systole" metric="mmHg" date="05.06.2011" time="10:33">170</measurement>
+  			<measurement type="blood pressure systole" metric="mmHg" date="06.06.2011" time="11:36">160</measurement>
+  			<measurement type="blood pressure diastole" metric="mmHg" date="30.05.2011" time="12:34">90</measurement>
+  			<measurement type="blood pressure diastole" metric="mmHg" date="31.05.2011" time="16:12">85</measurement>
+  			<measurement type="blood pressure diastole" metric="mmHg" date="01.06.2011" time="09:48">90</measurement>
+  			<measurement type="blood pressure diastole" metric="mmHg" date="02.06.2011" time="14:55">80</measurement>
+  			<measurement type="blood pressure diastole" metric="mmHg" date="03.06.2011" time="11:11">90</measurement>
+  			<measurement type="blood pressure diastole" metric="mmHg" date="04.06.2011" time="19:08">90</measurement>
+  			<measurement type="blood pressure diastole" metric="mmHg" date="05.06.2011" time="10:33">100</measurement>
+  			<measurement type="blood pressure diastole" metric="mmHg" date="06.06.2011" time="11:36">90</measurement>
+  			<measurement type="hearth rate" metric="bpm" date="30.05.2011" time="12:34">10</measurement>
+  			<measurement type="hearth rate" metric="bpm" date="31.05.2011" time="16:12">40</measurement>
+  			<measurement type="hearth rate" metric="bpm" date="01.06.2011" time="09:48">80</measurement>
+  			<measurement type="hearth rate" metric="bpm" date="02.06.2011" time="14:55">120</measurement>
+  			<measurement type="hearth rate" metric="bpm" date="03.06.2011" time="11:11">180</measurement>
+  			<measurement type="hearth rate" metric="bpm" date="04.06.2011" time="19:08">80</measurement>
+  			<measurement type="hearth rate" metric="bpm" date="05.06.2011" time="10:33">30</measurement>
+  			<measurement type="hearth rate" metric="bpm" date="06.06.2011" time="11:36">0</measurement>
   		</measurements>
   	</patient>
   	<patient id="673928518" lastname="Maier" firstname="Ina" dateofbirth="11.07.1969" gender="f" address="Gerlingstraße 16" city="Essen">
@@ -50,6 +82,30 @@
   			<measurement type="temperature" metric="celsius" date="04.06.2011" time="13:02">36.8</measurement>
   			<measurement type="temperature" metric="celsius" date="05.06.2011" time="11:44">36.7</measurement>
   			<measurement type="temperature" metric="celsius" date="06.06.2011" time="20:01">36.7</measurement>
+  			<measurement type="blood pressure systole" metric="mmHg" date="30.05.2011" time="12:34">130</measurement>
+  			<measurement type="blood pressure systole" metric="mmHg" date="31.05.2011" time="16:12">135</measurement>
+  			<measurement type="blood pressure systole" metric="mmHg" date="01.06.2011" time="09:48">130</measurement>
+  			<measurement type="blood pressure systole" metric="mmHg" date="02.06.2011" time="14:55">140</measurement>
+  			<measurement type="blood pressure systole" metric="mmHg" date="03.06.2011" time="11:11">150</measurement>
+  			<measurement type="blood pressure systole" metric="mmHg" date="04.06.2011" time="19:08">160</measurement>
+  			<measurement type="blood pressure systole" metric="mmHg" date="05.06.2011" time="10:33">170</measurement>
+  			<measurement type="blood pressure systole" metric="mmHg" date="06.06.2011" time="11:36">160</measurement>
+  			<measurement type="blood pressure diastole" metric="mmHg" date="30.05.2011" time="12:34">90</measurement>
+  			<measurement type="blood pressure diastole" metric="mmHg" date="31.05.2011" time="16:12">85</measurement>
+  			<measurement type="blood pressure diastole" metric="mmHg" date="01.06.2011" time="09:48">90</measurement>
+  			<measurement type="blood pressure diastole" metric="mmHg" date="02.06.2011" time="14:55">80</measurement>
+  			<measurement type="blood pressure diastole" metric="mmHg" date="03.06.2011" time="11:11">90</measurement>
+  			<measurement type="blood pressure diastole" metric="mmHg" date="04.06.2011" time="19:08">90</measurement>
+  			<measurement type="blood pressure diastole" metric="mmHg" date="05.06.2011" time="10:33">100</measurement>
+  			<measurement type="blood pressure diastole" metric="mmHg" date="06.06.2011" time="11:36">90</measurement>
+  			<measurement type="hearth rate" metric="bpm" date="30.05.2011" time="12:34">10</measurement>
+  			<measurement type="hearth rate" metric="bpm" date="31.05.2011" time="16:12">40</measurement>
+  			<measurement type="hearth rate" metric="bpm" date="01.06.2011" time="09:48">80</measurement>
+  			<measurement type="hearth rate" metric="bpm" date="02.06.2011" time="14:55">120</measurement>
+  			<measurement type="hearth rate" metric="bpm" date="03.06.2011" time="11:11">180</measurement>
+  			<measurement type="hearth rate" metric="bpm" date="04.06.2011" time="19:08">80</measurement>
+  			<measurement type="hearth rate" metric="bpm" date="05.06.2011" time="10:33">30</measurement>
+  			<measurement type="hearth rate" metric="bpm" date="06.06.2011" time="11:36">0</measurement>
   		</measurements>
   	</patient>
 </ehr>
