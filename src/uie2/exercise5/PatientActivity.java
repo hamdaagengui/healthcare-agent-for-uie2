@@ -117,7 +117,7 @@ public class PatientActivity extends Activity {
 				ArrayList<Number> y = new ArrayList<Number>(values.getCount());
 				while (values.moveToNext()) {
 					x.add(toTimestamp(values.getString(0), values.getString(1)));
-					y.add(values.getFloat(2));
+					y.add(normalizeValue((values.getFloat(2)), type));
 				}
 				SimpleXYSeries serie = new SimpleXYSeries(x, y, type);
 				series.add(serie);
@@ -164,5 +164,15 @@ public class PatientActivity extends Activity {
 		getContentResolver().notifyChange(MyContentProvider.MEASUREMENT_URI,
 				null);
 		paint();
+	}
+	
+	private float normalizeValue(float value, String type)
+	{
+		Log.d("1337", " normalize type: "+type+" value: "+value);
+		if(type.equals("temperature")) return ((100/9)*value-389);
+		else if(type.equals("blood pressure diastole")) return (value/2);
+		else if(type.equals("blood pressure systole")) return (value/2);
+		else if(type.equals("heartrate")) return (value/(2.1f));
+		return -1;
 	}
 }
