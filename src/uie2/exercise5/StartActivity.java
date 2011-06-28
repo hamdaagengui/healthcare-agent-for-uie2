@@ -10,15 +10,13 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Random;
+
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
-import com.androidplot.xy.BoundaryMode;
-import com.androidplot.xy.LineAndPointFormatter;
-import com.androidplot.xy.SimpleXYSeries;
-import com.androidplot.xy.XYPlot;
-import com.androidplot.xy.XYStepMode;
+
 import uie2.exercise5.PatientListFragment.OnPatientSelectedListener;
 import android.app.Activity;
 import android.app.ListFragment;
@@ -26,6 +24,7 @@ import android.content.ContentValues;
 import android.content.Intent;
 import android.database.ContentObserver;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.Bundle;
@@ -34,10 +33,23 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.View.OnTouchListener;
 import android.widget.Button;
+import android.widget.FrameLayout;
+import android.widget.FrameLayout.LayoutParams;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.androidplot.xy.BoundaryMode;
+import com.androidplot.xy.LineAndPointFormatter;
+import com.androidplot.xy.SimpleXYSeries;
+import com.androidplot.xy.XYPlot;
+import com.androidplot.xy.XYStepMode;
 
 public class StartActivity extends Activity implements
 		OnPatientSelectedListener {
@@ -51,6 +63,7 @@ public class StartActivity extends Activity implements
 	private Button blood_pressure_button;
 	private Button heart_rate_button;
 	private Button time_of_medication_button;
+	private XYPlot mySimpleXYPlot;
 
 	private void fillDatabase() {
 		InputStream input = null;
@@ -127,6 +140,13 @@ public class StartActivity extends Activity implements
 		heart_rate_button = (Button) findViewById(R.id.heartrate);
 		time_of_medication_button = (Button) findViewById(R.id.timeofmedication);
 		
+		temperature_button.setOnTouchListener(myOnDragListener);
+		blood_pressure_button.setOnTouchListener(myOnDragListener);
+		heart_rate_button.setOnTouchListener(myOnDragListener);
+		time_of_medication_button.setOnTouchListener(myOnDragListener);
+		
+		rootLayout=(LinearLayout) findViewById(R.id.rootlayout);
+		
 		activeMeasurementsInGraph = new ArrayList<String>();
 		activeMeasurementsInGraph.add("temperature");
 	}
@@ -144,7 +164,7 @@ public class StartActivity extends Activity implements
 	}
 
 	private void paint() {
-		XYPlot mySimpleXYPlot = (XYPlot) findViewById(R.id.mySimpleXYPlot);
+		mySimpleXYPlot = (XYPlot) findViewById(R.id.mySimpleXYPlot);
 		for (int i = 0; i < series.size(); i++) {
 			mySimpleXYPlot.removeSeries(series.get(i));
 		}
@@ -318,4 +338,59 @@ public class StartActivity extends Activity implements
 					}
 				});
 	}
+	private final static int START_DRAGGING = 0;
+	private final static int STOP_DRAGGING = 1;
+	private boolean draggedOverView = false;
+
+	private LinearLayout rootLayout;
+	private int status;
+	private LayoutParams params;
+	private ImageView image;
+	
+	private OnTouchListener myOnDragListener = new OnTouchListener() {
+
+		public boolean onTouch(View view, MotionEvent me) {
+			if (me.getAction() == MotionEvent.ACTION_DOWN) {
+				status = START_DRAGGING;
+				image = new ImageView(StartActivity.this);
+				Bitmap bm = view.getDrawingCache();
+				image.setImageBitmap(bm);
+				rootLayout.addView(image, params);
+			}
+			if (me.getAction() == MotionEvent.ACTION_UP) {
+				status = STOP_DRAGGING;
+				Log.i("Drag", "Stopped Dragging");
+				// dragged view is moved in the view
+				if (me.getX() > mySimpleXYPlot.getLeft()
+						& me.getX() < mySimpleXYPlot.getRight()
+						& me.getY() < mySimpleXYPlot.getBottom()
+						& me.getY() > mySimpleXYPlot.getTop()) {
+					rootLayout.removeView(image);
+				}
+				draggedOverView=false;
+			} else if (me.getAction() == MotionEvent.ACTION_MOVE) {
+				if (status == START_DRAGGING) {
+					System.out.println("Dragging");
+					int actualX = (int) me.getX() - (view.getWidth() / 2);
+					int actualY = (int) me.getY() - (view.getHeight() / 2);
+					image.setPadding(actualX, actualY, 0, 0);
+					image.invalidate();
+					if (me.getX() > mySimpleXYPlot.getLeft()
+							& me.getX() < mySimpleXYPlot.getRight()
+							& me.getY() < mySimpleXYPlot.getBottom()
+							& me.getY() > mySimpleXYPlot.getTop()) {
+						if (!draggedOverView)
+							Toast.makeText(StartActivity.this, "IN DER VIEW", Toast.LENGTH_SHORT).show();
+						draggedOverView = true;
+					}else{
+						if (draggedOverView){
+							Toast.makeText(StartActivity.this, "UND WIEDER RAUS", Toast.LENGTH_SHORT).show();
+							draggedOverView = false;
+						}
+					}
+				}
+			}
+			return false;
+		}
+	};
 }
