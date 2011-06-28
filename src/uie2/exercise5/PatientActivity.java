@@ -107,11 +107,11 @@ public class PatientActivity extends Activity {
 				new String[] { "DISTINCT type" }, "patientId=" + id, null,
 				"type ASC");
 		while (types.moveToNext()) {
-			LineAndPointFormatter formatter = new LineAndPointFormatter(Color.rgb(
-					0, 200, 0), // line color
-					Color.rgb(0, 100, 0), // point color
-					null); // fill color (optional)
 			String type = types.getString(0);
+			LineAndPointFormatter formatter = new LineAndPointFormatter(
+					getColorByType(type), // line color
+					getColorByType(type), // point color
+					null); // fill color (optional)
 			Cursor values = getContentResolver().query(
 					MyContentProvider.MEASUREMENT_URI,
 					new String[] { "date", "time", "value" },
@@ -185,10 +185,10 @@ public class PatientActivity extends Activity {
 	
 	private Integer getColorByType(String type)
 	{
-		if(type.equals("temperature")) return Color.rgb(0, 100, 0);
-		else if(type.equals("blood pressure diastole")) return Color.rgb(0, 100, 0);
-		else if(type.equals("blood pressure systole")) return Color.rgb(0, 100, 0);
+		if(type.equals("temperature")) return Color.rgb(0, 200, 0);
+		else if(type.equals("blood pressure diastole")) return Color.rgb(0, 200, 0);
+		else if(type.equals("blood pressure systole")) return Color.rgb(0, 200, 0);
 		else if(type.equals("hearth rate")) return Color.rgb(255, 0, 0);
-		return Color.rgb(0, 100, 0);
+		return Color.rgb(0, 200, 0);
 	}
 }
