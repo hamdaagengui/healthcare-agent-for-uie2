@@ -412,6 +412,28 @@ public class StartActivity extends Activity implements
 
 				}
 			}
+			if (event.getAction() == MotionEvent.ACTION_MOVE && mySimpleXYPlot.containsPoint(event.getX(), event.getY())){
+				mySimpleXYPlot.setCursorPosition(event.getX(), event.getY());
+				long xAxisValue = mySimpleXYPlot.getGraphWidget()
+						.getXVal(event.getX()).longValue();
+				double yAxisValue = mySimpleXYPlot.getGraphWidget()
+						.getRangeCursorVal();
+				mySimpleXYPlot.getGraphWidget().setCursorLabelPaint(null);
+				String xAxisDate = new Date(xAxisValue).toLocaleString();
+				Log.d("OnGraphTouch", "X-Value: " + xAxisDate + "\nY-Value: "
+						+ yAxisValue);
+				if (!added)
+					createPopUp("Date: " + xAxisDate + "\nValue: "
+							+ cutNumber(yAxisValue), (int) event.getX(),
+							(int) event.getY());
+				else {
+					removePopUp();
+					createPopUp("Date: " + xAxisDate + "\nValue: "
+							+ cutNumber(yAxisValue), (int) event.getX(),
+							(int) event.getY());
+
+				}
+			}
 
 			return true;
 		}
@@ -432,38 +454,9 @@ public class StartActivity extends Activity implements
 		popUp.setTextColor(Color.RED);
 		layout.addView(popUp, params);
 		added = true;
-		popUp.setOnTouchListener(new OnTouchListener() {
-			
-			public boolean onTouch(View v, MotionEvent event) {
-				if (event.getAction() == MotionEvent.ACTION_DOWN
-						&& mySimpleXYPlot.containsPoint(event.getX(),
-								event.getY())) {
-					mySimpleXYPlot.setCursorPosition(event.getX(), event.getY());
-					long xAxisValue = mySimpleXYPlot.getGraphWidget()
-							.getXVal(event.getX()).longValue();
-					double yAxisValue = mySimpleXYPlot.getGraphWidget()
-							.getRangeCursorVal();
-					mySimpleXYPlot.getGraphWidget().setCursorLabelPaint(null);
-					String xAxisDate = new Date(xAxisValue).toLocaleString();
-					Log.d("OnGraphTouch", "X-Value: " + xAxisDate
-							+ "\nY-Value: " + yAxisValue);
-					if (!added)
-						createPopUp("Date: " + xAxisDate + "\nValue: "
-								+ cutNumber(yAxisValue), (int) event.getX(),
-								(int) event.getY());
-					else {
-						removePopUp();
-						createPopUp("Date: " + xAxisDate + "\nValue: "
-								+ cutNumber(yAxisValue), (int) event.getX(),
-								(int) event.getY());
-
-					}
-				}
-				return true;
-			}
-		});
-	
+		popUp.setOnTouchListener(myGraphTouchListener);
 	}
+	
 
 	private double cutNumber(double input) {
 		input = input * 100;
