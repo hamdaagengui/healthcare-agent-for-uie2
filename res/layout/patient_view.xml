@@ -59,10 +59,14 @@
 			android:layout_height="fill_parent" android:layout_weight="1">
 			<ImageView android:layout_height="555px" android:layout_width="41px" android:id="@+id/imageView1" android:src="@drawable/black"></ImageView>
 			<ImageView android:layout_height="555px" android:layout_width="41px" android:id="@+id/imageView2" android:src="@drawable/black"></ImageView>
+			<FrameLayout
+				android:id="@+id/graphFrameLayout"
+				android:layout_width="fill_parent" android:layout_height="fill_parent">
 			<com.androidplot.xy.XYPlot android:id="@+id/mySimpleXYPlot"
 				android:layout_width="fill_parent" android:layout_height="fill_parent"
 				android:layout_marginTop="10px"
 				 title="Measurements" /> 
+				 </FrameLayout> 
 		</LinearLayout>
 		<LinearLayout android:orientation="vertical" android:layout_margin="10px"
 			android:layout_height="fill_parent" android:layout_width="fill_parent"
