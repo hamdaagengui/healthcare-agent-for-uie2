@@ -133,9 +133,10 @@ public class StartActivity extends Activity implements
 						R.id.textViewDateofbirth });
 		patients.setListAdapter(adapter);
 
-		id = getContentResolver().query(MyContentProvider.PATIENT_URI,
-				new String[] { "_id" }, null, null, null).getLong(0);
-		setPatient(id);
+		Cursor c = getContentResolver().query(MyContentProvider.PATIENT_URI,
+				new String[] { "_id" }, null, null, null);
+		c.moveToFirst();
+		id = c.getLong(0);
 
 		temperature_button = (Button) findViewById(R.id.temperature);
 		blood_pressure_button = (Button) findViewById(R.id.bloodpressure);
@@ -150,7 +151,8 @@ public class StartActivity extends Activity implements
 		rootLayout = (LinearLayout) findViewById(R.id.rootlayout);
 
 		activeMeasurementsInGraph = new ArrayList<String>();
-		activeMeasurementsInGraph.add("temperature");
+		chooseMeasurementType("heart rate");
+		paint();
 	}
 
 	@Override
@@ -180,7 +182,7 @@ public class StartActivity extends Activity implements
 				"type ASC");
 		while (types.moveToNext()) {
 			String type = types.getString(0);
-			if (activeMeasurementsInGraph.contains(type)) {
+			if (activeMeasurementsInGraph.contains(type) ||( type.startsWith("blood pressure") && activeMeasurementsInGraph.contains("blood pressure"))) {
 				LineAndPointFormatter formatter = new LineAndPointFormatter(
 						getColorByType(type), // line color
 						getColorByType(type), // point color
@@ -213,7 +215,7 @@ public class StartActivity extends Activity implements
 							.setRangeBoundaries(0, 100, BoundaryMode.AUTO);
 					mySimpleXYPlot.setRangeLabel("");
 					mySimpleXYPlot
-							.setRangeStepMode(XYStepMode.INCREMENT_BY_VAL);
+							.setRangeStepValue(22);
 					mySimpleXYPlot.getGraphWidget().getRangeLabelPaint()
 							.setAlpha(0);
 					mySimpleXYPlot.getGraphWidget().getRangeOriginLabelPaint()
@@ -273,14 +275,14 @@ public class StartActivity extends Activity implements
 	}
 
 	private float normalizeValue(float value, String type) {
-		Log.d("1337", " normalize type: " + type + " value: " + value);
+		//Log.d("1337", " normalize type: " + type + " value: " + value);
 		if (type.equals("temperature"))
 			return ((100 / 9) * value - 389);
 		else if (type.equals("blood pressure diastole"))
 			return (value / 2);
 		else if (type.equals("blood pressure systole"))
 			return (value / 2);
-		else if (type.equals("hearth rate"))
+		else if (type.equals("heart rate"))
 			return (value / (2.1f));
 		return -1;
 	}
@@ -299,12 +301,36 @@ public class StartActivity extends Activity implements
 
 	private void chooseMeasurementType(String type) {
 		if (activeMeasurementsInGraph.isEmpty())
+		{
 			activeMeasurementsInGraph.add(type);
+			ImageView image2 = (ImageView)findViewById(R.id.imageView2);
+			if(type.equals("temperature"))image2.setImageResource(R.drawable.temperature);
+			else if(type.equals("blood pressure"))image2.setImageResource(R.drawable.bloodpressure);
+			else if(type.equals("heart rate"))image2.setImageResource(R.drawable.heartrate);
+		}
 		else if (activeMeasurementsInGraph.size() == 1)
+		{
 			activeMeasurementsInGraph.add(type);
+			ImageView image1 = (ImageView)findViewById(R.id.imageView1);
+			if(type.equals("temperature"))image1.setImageResource(R.drawable.temperature);
+			else if(type.equals("blood pressure"))image1.setImageResource(R.drawable.bloodpressure);
+			else if(type.equals("heart rate"))image1.setImageResource(R.drawable.heartrate);
+		}
 		else {
 			activeMeasurementsInGraph.remove(0);
 			activeMeasurementsInGraph.add(type);
+			ImageView image1 = (ImageView)findViewById(R.id.imageView1);
+			if(activeMeasurementsInGraph.get(0).equals("temperature"))image1.setImageResource(R.drawable.temperature);
+			else if(activeMeasurementsInGraph.get(0).equals("blood pressure"))image1.setImageResource(R.drawable.bloodpressure);
+			else if(activeMeasurementsInGraph.get(0).equals("heart rate"))image1.setImageResource(R.drawable.heartrate);
+			ImageView image2 = (ImageView)findViewById(R.id.imageView2);
+			if(activeMeasurementsInGraph.get(1).equals("temperature"))image1.setImageResource(R.drawable.temperature);
+			else if(activeMeasurementsInGraph.get(1).equals("blood pressure"))image1.setImageResource(R.drawable.bloodpressure);
+			else if(activeMeasurementsInGraph.get(1).equals("heart rate"))image1.setImageResource(R.drawable.heartrate);
+		}
+		for(int i=0; i<activeMeasurementsInGraph.size(); i++)
+		{
+			Log.d("1338", i+ "im graphen: "+activeMeasurementsInGraph.get(i));
 		}
 	}
 
