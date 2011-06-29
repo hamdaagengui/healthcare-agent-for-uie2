@@ -119,8 +119,6 @@ public class StartActivity extends Activity implements
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
 
-		id = -1;
-
 		fillDatabase();
 
 		ListFragment patients = (ListFragment) getFragmentManager()
@@ -134,19 +132,23 @@ public class StartActivity extends Activity implements
 						R.id.textViewName, R.id.textViewFirstname,
 						R.id.textViewDateofbirth });
 		patients.setListAdapter(adapter);
-		
+
+		id = getContentResolver().query(MyContentProvider.PATIENT_URI,
+				new String[] { "_id" }, null, null, null).getLong(0);
+		setPatient(id);
+
 		temperature_button = (Button) findViewById(R.id.temperature);
 		blood_pressure_button = (Button) findViewById(R.id.bloodpressure);
 		heart_rate_button = (Button) findViewById(R.id.heartrate);
 		time_of_medication_button = (Button) findViewById(R.id.timeofmedication);
-		
+
 		temperature_button.setOnTouchListener(myOnDragListener);
 		blood_pressure_button.setOnTouchListener(myOnDragListener);
 		heart_rate_button.setOnTouchListener(myOnDragListener);
 		time_of_medication_button.setOnTouchListener(myOnDragListener);
-		
-		rootLayout=(LinearLayout) findViewById(R.id.rootlayout);
-		
+
+		rootLayout = (LinearLayout) findViewById(R.id.rootlayout);
+
 		activeMeasurementsInGraph = new ArrayList<String>();
 		activeMeasurementsInGraph.add("temperature");
 	}
@@ -178,48 +180,54 @@ public class StartActivity extends Activity implements
 				"type ASC");
 		while (types.moveToNext()) {
 			String type = types.getString(0);
-			if(activeMeasurementsInGraph.contains(type))
-			{
-			LineAndPointFormatter formatter = new LineAndPointFormatter(
-					getColorByType(type), // line color
-					getColorByType(type), // point color
-					null); // fill color (optional)
-			Paint lineP = new Paint();
-			lineP.setStyle(Paint.Style.STROKE);
-			lineP.setStrokeWidth(8);
-			lineP.setColor(getColorByType(type));
-			formatter.setLinePaint(lineP);
-			Cursor values = getContentResolver().query(
-					MyContentProvider.MEASUREMENT_URI,
-					new String[] { "date", "time", "value" },
-					"patientID==" + id + " AND type=\"" + type + "\"", null,
-					null);
-			if (values.getCount() > 0) {
-				Log.d("1337", "" + values.getCount());
-				ArrayList<Number> x = new ArrayList<Number>(values.getCount());
-				ArrayList<Number> y = new ArrayList<Number>(values.getCount());
-				while (values.moveToNext()) {
-					x.add(toTimestamp(values.getString(0), values.getString(1)));
-					y.add(normalizeValue((values.getFloat(2)), type));
+			if (activeMeasurementsInGraph.contains(type)) {
+				LineAndPointFormatter formatter = new LineAndPointFormatter(
+						getColorByType(type), // line color
+						getColorByType(type), // point color
+						null); // fill color (optional)
+				Paint lineP = new Paint();
+				lineP.setStyle(Paint.Style.STROKE);
+				lineP.setStrokeWidth(8);
+				lineP.setColor(getColorByType(type));
+				formatter.setLinePaint(lineP);
+				Cursor values = getContentResolver().query(
+						MyContentProvider.MEASUREMENT_URI,
+						new String[] { "date", "time", "value" },
+						"patientID==" + id + " AND type=\"" + type + "\"",
+						null, null);
+				if (values.getCount() > 0) {
+					Log.d("1337", "" + values.getCount());
+					ArrayList<Number> x = new ArrayList<Number>(
+							values.getCount());
+					ArrayList<Number> y = new ArrayList<Number>(
+							values.getCount());
+					while (values.moveToNext()) {
+						x.add(toTimestamp(values.getString(0),
+								values.getString(1)));
+						y.add(normalizeValue((values.getFloat(2)), type));
+					}
+					SimpleXYSeries serie = new SimpleXYSeries(x, y, type);
+					series.add(serie);
+					mySimpleXYPlot.addSeries(serie, formatter);
+					mySimpleXYPlot
+							.setRangeBoundaries(0, 100, BoundaryMode.AUTO);
+					mySimpleXYPlot.setRangeLabel("");
+					mySimpleXYPlot
+							.setRangeStepMode(XYStepMode.INCREMENT_BY_VAL);
+					mySimpleXYPlot.getGraphWidget().getRangeLabelPaint()
+							.setAlpha(0);
+					mySimpleXYPlot.getGraphWidget().getRangeOriginLabelPaint()
+							.setAlpha(0);
+					mySimpleXYPlot.setDomainLabel("Date");
+					// mySimpleXYPlot.setDomainStep(XYStepMode.INCREMENT_BY_VAL,
+					// 1);
+					mySimpleXYPlot.setDomainStep(XYStepMode.SUBDIVIDE,
+							values.getCount());
+					values.close();
+					mySimpleXYPlot.setDomainValueFormat(new MyDateFormat());
+					mySimpleXYPlot.disableAllMarkup();
 				}
-				SimpleXYSeries serie = new SimpleXYSeries(x, y, type);
-				series.add(serie);
-				mySimpleXYPlot.addSeries(serie, formatter);
-				mySimpleXYPlot.setRangeBoundaries(0, 100, BoundaryMode.AUTO);
-				mySimpleXYPlot.setRangeLabel("");
-				mySimpleXYPlot.setRangeStepMode(XYStepMode.INCREMENT_BY_VAL);
-				mySimpleXYPlot.getGraphWidget().getRangeLabelPaint()
-						.setAlpha(0);
-				mySimpleXYPlot.getGraphWidget().getRangeOriginLabelPaint().setAlpha(0);
-				mySimpleXYPlot.setDomainLabel("Date");
-				// mySimpleXYPlot.setDomainStep(XYStepMode.INCREMENT_BY_VAL, 1);
-				mySimpleXYPlot.setDomainStep(XYStepMode.SUBDIVIDE,
-						values.getCount());
-				values.close();
-				mySimpleXYPlot.setDomainValueFormat(new MyDateFormat());
-				mySimpleXYPlot.disableAllMarkup();
-			}
-			mySimpleXYPlot.redraw();
+				mySimpleXYPlot.redraw();
 			}
 		}
 	}
@@ -277,26 +285,29 @@ public class StartActivity extends Activity implements
 		return -1;
 	}
 
-	private Integer getColorByType(String type)
-	{
-		if(type.equals("temperature")) return Color.rgb(0, 200, 0);
-		else if(type.equals("blood pressure diastole")) return Color.rgb(127, 219, 255);
-		else if(type.equals("blood pressure systole")) return Color.rgb(98,12,67);
-		else if(type.equals("hearth rate")) return Color.rgb(255,0,0);
+	private Integer getColorByType(String type) {
+		if (type.equals("temperature"))
+			return Color.rgb(0, 200, 0);
+		else if (type.equals("blood pressure diastole"))
+			return Color.rgb(127, 219, 255);
+		else if (type.equals("blood pressure systole"))
+			return Color.rgb(98, 12, 67);
+		else if (type.equals("hearth rate"))
+			return Color.rgb(255, 0, 0);
 		return Color.rgb(0, 200, 0);
 	}
-	
-	private void chooseMeasurementType(String type)
-	{
-		if(activeMeasurementsInGraph.isEmpty()) activeMeasurementsInGraph.add(type);
-		else if(activeMeasurementsInGraph.size()==1) activeMeasurementsInGraph.add(type);
-		else
-		{
+
+	private void chooseMeasurementType(String type) {
+		if (activeMeasurementsInGraph.isEmpty())
+			activeMeasurementsInGraph.add(type);
+		else if (activeMeasurementsInGraph.size() == 1)
+			activeMeasurementsInGraph.add(type);
+		else {
 			activeMeasurementsInGraph.remove(0);
 			activeMeasurementsInGraph.add(type);
 		}
 	}
-	
+
 	public void setPatient(long patientId) {
 		Cursor c = getContentResolver().query(
 				MyContentProvider.PATIENT_URI,
@@ -339,6 +350,7 @@ public class StartActivity extends Activity implements
 					}
 				});
 	}
+
 	private final static int START_DRAGGING = 0;
 	private final static int STOP_DRAGGING = 1;
 	private boolean draggedOverView = false;
@@ -347,7 +359,7 @@ public class StartActivity extends Activity implements
 	private int status;
 	private LayoutParams params;
 	private ImageView image;
-	
+
 	private OnTouchListener myOnDragListener = new OnTouchListener() {
 
 		public boolean onTouch(View view, MotionEvent me) {
@@ -368,7 +380,7 @@ public class StartActivity extends Activity implements
 						& me.getY() > mySimpleXYPlot.getTop()) {
 					rootLayout.removeView(image);
 				}
-				draggedOverView=false;
+				draggedOverView = false;
 			} else if (me.getAction() == MotionEvent.ACTION_MOVE) {
 				if (status == START_DRAGGING) {
 					System.out.println("Dragging");
@@ -381,11 +393,14 @@ public class StartActivity extends Activity implements
 							& me.getY() < mySimpleXYPlot.getBottom()
 							& me.getY() > mySimpleXYPlot.getTop()) {
 						if (!draggedOverView)
-							Toast.makeText(StartActivity.this, "IN DER VIEW", Toast.LENGTH_SHORT).show();
+							Toast.makeText(StartActivity.this, "IN DER VIEW",
+									Toast.LENGTH_SHORT).show();
 						draggedOverView = true;
-					}else{
-						if (draggedOverView){
-							Toast.makeText(StartActivity.this, "UND WIEDER RAUS", Toast.LENGTH_SHORT).show();
+					} else {
+						if (draggedOverView) {
+							Toast.makeText(StartActivity.this,
+									"UND WIEDER RAUS", Toast.LENGTH_SHORT)
+									.show();
 							draggedOverView = false;
 						}
 					}
