@@ -19,6 +19,7 @@ import org.w3c.dom.NodeList;
 
 import uie2.exercise5.PatientListFragment.OnPatientSelectedListener;
 import android.app.Activity;
+import android.app.Fragment;
 import android.app.ListFragment;
 import android.content.ContentValues;
 import android.content.Intent;
@@ -35,12 +36,13 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
+import android.view.ViewParent;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.FrameLayout.LayoutParams;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -64,10 +66,19 @@ public class StartActivity extends Activity implements
 	private Button heart_rate_button;
 	private Button time_of_medication_button;
 	private TextView popUp;
-	
+
+	private final static int START_DRAGGING = 0;
+	private final static int STOP_DRAGGING = 1;
+	private boolean draggedOverView = false;
+
+	private FrameLayout rootLayout;
+	private int status;
+	private LayoutParams params;
+	private ImageView image;
+
 	private XYPlot mySimpleXYPlot;
 	private boolean added;
-	private FrameLayout layout;
+	private FrameLayout graphFramelayout;
 
 	private void fillDatabase() {
 		InputStream input = null;
@@ -147,16 +158,24 @@ public class StartActivity extends Activity implements
 		heart_rate_button = (Button) findViewById(R.id.heartrate);
 		time_of_medication_button = (Button) findViewById(R.id.timeofmedication);
 
-//		temperature_button.setOnTouchListener(myOnDragListener);
-//		blood_pressure_button.setOnTouchListener(myOnDragListener);
-//		heart_rate_button.setOnTouchListener(myOnDragListener);
-//		time_of_medication_button.setOnTouchListener(myOnDragListener);
+		temperature_button.setDrawingCacheEnabled(true);
+		blood_pressure_button.setDrawingCacheEnabled(true);
+		heart_rate_button.setDrawingCacheEnabled(true);
+		time_of_medication_button.setDrawingCacheEnabled(true);
 
-		layout = (FrameLayout) findViewById(R.id.graphFrameLayout);
+		temperature_button.setOnTouchListener(myOnDragListener);
+		blood_pressure_button.setOnTouchListener(myOnDragListener);
+		heart_rate_button.setOnTouchListener(myOnDragListener);
+		time_of_medication_button.setOnTouchListener(myOnDragListener);
 
+		graphFramelayout = (FrameLayout) findViewById(R.id.graphFrameLayout);
+		rootLayout = (FrameLayout) findViewById(R.id.rootlayoutRoot);
+		params = new LayoutParams(LayoutParams.WRAP_CONTENT,
+				LayoutParams.WRAP_CONTENT);
 		activeMeasurementsInGraph = new ArrayList<String>();
 		chooseMeasurementType("heart rate");
-		paint();
+		//paint();
+		updateButtons();
 	}
 
 	@Override
@@ -187,7 +206,9 @@ public class StartActivity extends Activity implements
 				"type ASC");
 		while (types.moveToNext()) {
 			String type = types.getString(0);
-			if (activeMeasurementsInGraph.contains(type) ||( type.startsWith("blood pressure") && activeMeasurementsInGraph.contains("blood pressure"))) {
+			if (activeMeasurementsInGraph.contains(type)
+					|| (type.startsWith("blood pressure") && activeMeasurementsInGraph
+							.contains("blood pressure"))) {
 				LineAndPointFormatter formatter = new LineAndPointFormatter(
 						getColorByType(type), // line color
 						getColorByType(type), // point color
@@ -219,8 +240,7 @@ public class StartActivity extends Activity implements
 					mySimpleXYPlot
 							.setRangeBoundaries(0, 100, BoundaryMode.AUTO);
 					mySimpleXYPlot.setRangeLabel("");
-					mySimpleXYPlot
-							.setRangeStepValue(22);
+					mySimpleXYPlot.setRangeStepValue(22);
 					mySimpleXYPlot.getGraphWidget().getRangeLabelPaint()
 							.setAlpha(0);
 					mySimpleXYPlot.getGraphWidget().getRangeOriginLabelPaint()
@@ -235,9 +255,9 @@ public class StartActivity extends Activity implements
 					mySimpleXYPlot.disableAllMarkup();
 				}
 				mySimpleXYPlot.redraw();
-				if (added){
+				if (added) {
 					removePopUp();
-					mySimpleXYPlot.setCursorPosition(0,0);
+					mySimpleXYPlot.setCursorPosition(0, 0);
 				}
 			}
 		}
@@ -284,7 +304,7 @@ public class StartActivity extends Activity implements
 	}
 
 	private float normalizeValue(float value, String type) {
-		//Log.d("1337", " normalize type: " + type + " value: " + value);
+		// Log.d("1337", " normalize type: " + type + " value: " + value);
 		if (type.equals("temperature"))
 			return ((100 / 9) * value - 389);
 		else if (type.equals("blood pressure diastole"))
@@ -303,44 +323,71 @@ public class StartActivity extends Activity implements
 			return Color.rgb(127, 219, 255);
 		else if (type.equals("blood pressure systole"))
 			return Color.rgb(98, 12, 67);
-		else if (type.equals("hearth rate"))
+		else if (type.equals("heart rate"))
 			return Color.rgb(255, 0, 0);
 		return Color.rgb(0, 200, 0);
 	}
 
+	private void chooseMeasurement(int buttonID){
+		switch (buttonID) {
+		case (R.id.bloodpressure):
+			chooseMeasurementType("blood pressure");
+			break;
+		case (R.id.heartrate):
+			chooseMeasurementType("heart rate");
+			break;
+		case (R.id.temperature):
+			chooseMeasurementType("temperature");
+			break;
+		case (R.id.timeofmedication):
+			chooseMeasurementType("medication");
+			break;
+		}
+	}
+	
+	
+	// TYPE for timeofmedication = "medication"
 	private void chooseMeasurementType(String type) {
-		if (activeMeasurementsInGraph.isEmpty())
-		{
+		if (activeMeasurementsInGraph.isEmpty()) {
 			activeMeasurementsInGraph.add(type);
-			ImageView image2 = (ImageView)findViewById(R.id.imageView2);
-			if(type.equals("temperature"))image2.setImageResource(R.drawable.temperature);
-			else if(type.equals("blood pressure"))image2.setImageResource(R.drawable.bloodpressure);
-			else if(type.equals("heart rate"))image2.setImageResource(R.drawable.heartrate);
-		}
-		else if (activeMeasurementsInGraph.size() == 1)
-		{
+			ImageView image2 = (ImageView) findViewById(R.id.imageView2);
+			if (type.equals("temperature"))
+				image2.setImageResource(R.drawable.temperature);
+			else if (type.equals("blood pressure"))
+				image2.setImageResource(R.drawable.bloodpressure);
+			else if (type.equals("heart rate"))
+				image2.setImageResource(R.drawable.heartrate);
+		} else if (activeMeasurementsInGraph.size() == 1) {
 			activeMeasurementsInGraph.add(type);
-			ImageView image1 = (ImageView)findViewById(R.id.imageView1);
-			if(type.equals("temperature"))image1.setImageResource(R.drawable.temperature);
-			else if(type.equals("blood pressure"))image1.setImageResource(R.drawable.bloodpressure);
-			else if(type.equals("heart rate"))image1.setImageResource(R.drawable.heartrate);
-		}
-		else {
+			ImageView image1 = (ImageView) findViewById(R.id.imageView1);
+			if (type.equals("temperature"))
+				image1.setImageResource(R.drawable.temperature);
+			else if (type.equals("blood pressure"))
+				image1.setImageResource(R.drawable.bloodpressure);
+			else if (type.equals("heart rate"))
+				image1.setImageResource(R.drawable.heartrate);
+		} else {
 			activeMeasurementsInGraph.remove(0);
 			activeMeasurementsInGraph.add(type);
-			ImageView image1 = (ImageView)findViewById(R.id.imageView1);
-			if(activeMeasurementsInGraph.get(0).equals("temperature"))image1.setImageResource(R.drawable.temperature);
-			else if(activeMeasurementsInGraph.get(0).equals("blood pressure"))image1.setImageResource(R.drawable.bloodpressure);
-			else if(activeMeasurementsInGraph.get(0).equals("heart rate"))image1.setImageResource(R.drawable.heartrate);
-			ImageView image2 = (ImageView)findViewById(R.id.imageView2);
-			if(activeMeasurementsInGraph.get(1).equals("temperature"))image1.setImageResource(R.drawable.temperature);
-			else if(activeMeasurementsInGraph.get(1).equals("blood pressure"))image1.setImageResource(R.drawable.bloodpressure);
-			else if(activeMeasurementsInGraph.get(1).equals("heart rate"))image1.setImageResource(R.drawable.heartrate);
+			ImageView image1 = (ImageView) findViewById(R.id.imageView1);
+			if (activeMeasurementsInGraph.get(0).equals("temperature"))
+				image1.setImageResource(R.drawable.temperature);
+			else if (activeMeasurementsInGraph.get(0).equals("blood pressure"))
+				image1.setImageResource(R.drawable.bloodpressure);
+			else if (activeMeasurementsInGraph.get(0).equals("heart rate"))
+				image1.setImageResource(R.drawable.heartrate);
+			ImageView image2 = (ImageView) findViewById(R.id.imageView2);
+			if (activeMeasurementsInGraph.get(1).equals("temperature"))
+				image1.setImageResource(R.drawable.temperature);
+			else if (activeMeasurementsInGraph.get(1).equals("blood pressure"))
+				image1.setImageResource(R.drawable.bloodpressure);
+			else if (activeMeasurementsInGraph.get(1).equals("heart rate"))
+				image1.setImageResource(R.drawable.heartrate);
 		}
-		for(int i=0; i<activeMeasurementsInGraph.size(); i++)
-		{
-			Log.d("1338", i+ "im graphen: "+activeMeasurementsInGraph.get(i));
+		for (int i = 0; i < activeMeasurementsInGraph.size(); i++) {
+			Log.d("1338", i + "im graphen: " + activeMeasurementsInGraph.get(i));
 		}
+		paint();
 	}
 
 	public void setPatient(long patientId) {
@@ -385,9 +432,9 @@ public class StartActivity extends Activity implements
 					}
 				});
 	}
-	
+
 	private OnTouchListener myGraphTouchListener = new OnTouchListener() {
-		
+
 		public boolean onTouch(View v, MotionEvent event) {
 			if (event.getAction() == MotionEvent.ACTION_DOWN
 					&& mySimpleXYPlot.containsPoint(event.getX(), event.getY())) {
@@ -412,27 +459,19 @@ public class StartActivity extends Activity implements
 
 				}
 			}
-			if (event.getAction() == MotionEvent.ACTION_MOVE && mySimpleXYPlot.containsPoint(event.getX(), event.getY())){
+			if (event.getAction() == MotionEvent.ACTION_MOVE
+					&& mySimpleXYPlot.containsPoint(event.getX(), event.getY())) {
 				mySimpleXYPlot.setCursorPosition(event.getX(), event.getY());
 				long xAxisValue = mySimpleXYPlot.getGraphWidget()
 						.getXVal(event.getX()).longValue();
 				double yAxisValue = mySimpleXYPlot.getGraphWidget()
 						.getRangeCursorVal();
-				mySimpleXYPlot.getGraphWidget().setCursorLabelPaint(null);
 				String xAxisDate = new Date(xAxisValue).toLocaleString();
 				Log.d("OnGraphTouch", "X-Value: " + xAxisDate + "\nY-Value: "
 						+ yAxisValue);
-				if (!added)
-					createPopUp("Date: " + xAxisDate + "\nValue: "
-							+ cutNumber(yAxisValue), (int) event.getX(),
-							(int) event.getY());
-				else {
-					removePopUp();
-					createPopUp("Date: " + xAxisDate + "\nValue: "
-							+ cutNumber(yAxisValue), (int) event.getX(),
-							(int) event.getY());
-
-				}
+				popUp.setText("Date: " + xAxisDate + "\nValue: "
+						+ cutNumber(yAxisValue));
+				popUp.setPadding((int) event.getX(), (int) event.getY(), 0, 0);
 			}
 
 			return true;
@@ -440,7 +479,7 @@ public class StartActivity extends Activity implements
 	};
 
 	private void removePopUp() {
-		layout.removeView(popUp);
+		graphFramelayout.removeView(popUp);
 		added = false;
 	}
 
@@ -452,11 +491,10 @@ public class StartActivity extends Activity implements
 		popUp.setText(text);
 		popUp.setTextSize(20);
 		popUp.setTextColor(Color.RED);
-		layout.addView(popUp, params);
+		graphFramelayout.addView(popUp, params);
 		added = true;
 		popUp.setOnTouchListener(myGraphTouchListener);
 	}
-	
 
 	private double cutNumber(double input) {
 		input = input * 100;
@@ -464,4 +502,110 @@ public class StartActivity extends Activity implements
 		double bla2 = bla / 100d;
 		return bla2;
 	}
+
+	private OnTouchListener myOnDragListener = new OnTouchListener() {
+
+		public boolean onTouch(View view, MotionEvent me) {
+			if (me.getAction() == MotionEvent.ACTION_DOWN) {
+				status = START_DRAGGING;
+				image = new ImageView(StartActivity.this);
+				Bitmap bm = view.getDrawingCache();
+				image.setImageBitmap(bm);
+				int actualX = (int) me.getRawX() - (view.getWidth() / 2);
+				int actualY = (int) me.getRawY() - (view.getHeight() / 2);
+				image.setPadding(actualX, actualY, 0, 0);
+				rootLayout.addView(image, params);
+			}
+			if (me.getAction() == MotionEvent.ACTION_UP) {
+				status = STOP_DRAGGING;
+				Log.i("Drag", "Stopped Dragging");
+				// dragged view is moved in the view
+				
+				if (me.getRawX() > graphFramelayout.getX()+rootLayout.getWidth()/4
+						& me.getRawX() < graphFramelayout.getX()+graphFramelayout.getWidth()+rootLayout.getWidth()/4
+						& me.getRawY() < graphFramelayout.getY()+graphFramelayout.getHeight()+rootLayout.getHeight()/6
+						& me.getRawY() > graphFramelayout.getY()+rootLayout.getHeight()/6) {
+					chooseMeasurement(view.getId());
+					updateButtons();
+				}
+				rootLayout.removeView(image);
+				draggedOverView = false;
+			} else if (me.getAction() == MotionEvent.ACTION_MOVE) {
+				if (status == START_DRAGGING) {
+					int actualX = (int) me.getRawX() - (view.getWidth() / 2);
+					int actualY = (int) me.getRawY() - (view.getHeight() / 2);
+					image.setPadding(actualX, actualY, 0, 0);
+					image.invalidate();
+				}
+			}
+			return true;
+		}
+	};
+	
+	private OnClickListener myDismissButtonListener = new OnClickListener() {
+		
+		public void onClick(View v) {
+			switch (v.getId()) {
+			case (R.id.bloodpressure):
+				activeMeasurementsInGraph.remove("blood pressure");
+				break;
+			case (R.id.heartrate):
+				activeMeasurementsInGraph.remove("heart rate");
+				break;
+			case (R.id.temperature):
+				activeMeasurementsInGraph.remove("temperature");
+				break;
+			case (R.id.timeofmedication):
+				activeMeasurementsInGraph.remove("medication");
+				break;
+			}
+			updateButtons();
+		}
+	};
+	
+	private void updateButtons(){
+		if (activeMeasurementsInGraph.contains("temperature")){
+			temperature_button.setBackgroundResource(R.drawable.buttonbggreen);
+			temperature_button.setOnClickListener(myDismissButtonListener);
+			temperature_button.setOnTouchListener(null);
+		}
+		else{
+			temperature_button.setBackgroundResource(R.drawable.buttonbgred);
+			temperature_button.setOnClickListener(null);
+			temperature_button.setOnTouchListener(myOnDragListener);
+		}
+		if (activeMeasurementsInGraph.contains("blood pressure")){
+			blood_pressure_button.setBackgroundResource(R.drawable.buttonbggreen);
+			blood_pressure_button.setOnClickListener(myDismissButtonListener);
+			blood_pressure_button.setOnTouchListener(null);
+		}
+		else{
+			blood_pressure_button.setBackgroundResource(R.drawable.buttonbgred);
+			blood_pressure_button.setOnClickListener(null);
+			blood_pressure_button.setOnTouchListener(myOnDragListener);
+		}
+			
+		if (activeMeasurementsInGraph.contains("heart rate")){
+			heart_rate_button.setBackgroundResource(R.drawable.buttonbggreen);
+			heart_rate_button.setOnClickListener(myDismissButtonListener);
+			heart_rate_button.setOnTouchListener(null);
+		}
+		else{
+			heart_rate_button.setBackgroundResource(R.drawable.buttonbgred);
+			heart_rate_button.setOnClickListener(null);
+			heart_rate_button.setOnTouchListener(myOnDragListener);
+		}
+		
+		if (activeMeasurementsInGraph.contains("medication")){
+			time_of_medication_button.setBackgroundResource(R.drawable.buttonbggreen);
+			time_of_medication_button.setOnClickListener(myDismissButtonListener);
+			time_of_medication_button.setOnTouchListener(null);
+		}
+		else{
+			time_of_medication_button.setBackgroundResource(R.drawable.buttonbgred);
+			time_of_medication_button.setOnClickListener(null);
+			time_of_medication_button.setOnTouchListener(myOnDragListener);
+		}
+	}
+
 }
