@@ -63,7 +63,11 @@ public class StartActivity extends Activity implements
 	private Button blood_pressure_button;
 	private Button heart_rate_button;
 	private Button time_of_medication_button;
+	private TextView popUp;
+	
 	private XYPlot mySimpleXYPlot;
+	private boolean added;
+	private FrameLayout layout;
 
 	private void fillDatabase() {
 		InputStream input = null;
@@ -143,12 +147,12 @@ public class StartActivity extends Activity implements
 		heart_rate_button = (Button) findViewById(R.id.heartrate);
 		time_of_medication_button = (Button) findViewById(R.id.timeofmedication);
 
-		temperature_button.setOnTouchListener(myOnDragListener);
-		blood_pressure_button.setOnTouchListener(myOnDragListener);
-		heart_rate_button.setOnTouchListener(myOnDragListener);
-		time_of_medication_button.setOnTouchListener(myOnDragListener);
+//		temperature_button.setOnTouchListener(myOnDragListener);
+//		blood_pressure_button.setOnTouchListener(myOnDragListener);
+//		heart_rate_button.setOnTouchListener(myOnDragListener);
+//		time_of_medication_button.setOnTouchListener(myOnDragListener);
 
-		rootLayout = (LinearLayout) findViewById(R.id.rootlayout);
+		layout = (FrameLayout) findViewById(R.id.graphFrameLayout);
 
 		activeMeasurementsInGraph = new ArrayList<String>();
 		chooseMeasurementType("heart rate");
@@ -169,6 +173,7 @@ public class StartActivity extends Activity implements
 
 	private void paint() {
 		mySimpleXYPlot = (XYPlot) findViewById(R.id.mySimpleXYPlot);
+		mySimpleXYPlot.setOnTouchListener(myGraphTouchListener);
 		for (int i = 0; i < series.size(); i++) {
 			mySimpleXYPlot.removeSeries(series.get(i));
 		}
@@ -230,6 +235,10 @@ public class StartActivity extends Activity implements
 					mySimpleXYPlot.disableAllMarkup();
 				}
 				mySimpleXYPlot.redraw();
+				if (added){
+					removePopUp();
+					mySimpleXYPlot.setCursorPosition(0,0);
+				}
 			}
 		}
 	}
@@ -376,63 +385,90 @@ public class StartActivity extends Activity implements
 					}
 				});
 	}
+	
+	private OnTouchListener myGraphTouchListener = new OnTouchListener() {
+		
+		public boolean onTouch(View v, MotionEvent event) {
+			if (event.getAction() == MotionEvent.ACTION_DOWN
+					&& mySimpleXYPlot.containsPoint(event.getX(), event.getY())) {
+				mySimpleXYPlot.setCursorPosition(event.getX(), event.getY());
+				long xAxisValue = mySimpleXYPlot.getGraphWidget()
+						.getXVal(event.getX()).longValue();
+				double yAxisValue = mySimpleXYPlot.getGraphWidget()
+						.getRangeCursorVal();
+				mySimpleXYPlot.getGraphWidget().setCursorLabelPaint(null);
+				String xAxisDate = new Date(xAxisValue).toLocaleString();
+				Log.d("OnGraphTouch", "X-Value: " + xAxisDate + "\nY-Value: "
+						+ yAxisValue);
+				if (!added)
+					createPopUp("Date: " + xAxisDate + "\nValue: "
+							+ cutNumber(yAxisValue), (int) event.getX(),
+							(int) event.getY());
+				else {
+					removePopUp();
+					createPopUp("Date: " + xAxisDate + "\nValue: "
+							+ cutNumber(yAxisValue), (int) event.getX(),
+							(int) event.getY());
 
-	private final static int START_DRAGGING = 0;
-	private final static int STOP_DRAGGING = 1;
-	private boolean draggedOverView = false;
-
-	private LinearLayout rootLayout;
-	private int status;
-	private LayoutParams params;
-	private ImageView image;
-
-	private OnTouchListener myOnDragListener = new OnTouchListener() {
-
-		public boolean onTouch(View view, MotionEvent me) {
-			if (me.getAction() == MotionEvent.ACTION_DOWN) {
-				status = START_DRAGGING;
-				image = new ImageView(StartActivity.this);
-				Bitmap bm = view.getDrawingCache();
-				image.setImageBitmap(bm);
-				rootLayout.addView(image, params);
-			}
-			if (me.getAction() == MotionEvent.ACTION_UP) {
-				status = STOP_DRAGGING;
-				Log.i("Drag", "Stopped Dragging");
-				// dragged view is moved in the view
-				if (me.getX() > mySimpleXYPlot.getLeft()
-						& me.getX() < mySimpleXYPlot.getRight()
-						& me.getY() < mySimpleXYPlot.getBottom()
-						& me.getY() > mySimpleXYPlot.getTop()) {
-					rootLayout.removeView(image);
-				}
-				draggedOverView = false;
-			} else if (me.getAction() == MotionEvent.ACTION_MOVE) {
-				if (status == START_DRAGGING) {
-					System.out.println("Dragging");
-					int actualX = (int) me.getX() - (view.getWidth() / 2);
-					int actualY = (int) me.getY() - (view.getHeight() / 2);
-					image.setPadding(actualX, actualY, 0, 0);
-					image.invalidate();
-					if (me.getX() > mySimpleXYPlot.getLeft()
-							& me.getX() < mySimpleXYPlot.getRight()
-							& me.getY() < mySimpleXYPlot.getBottom()
-							& me.getY() > mySimpleXYPlot.getTop()) {
-						if (!draggedOverView)
-							Toast.makeText(StartActivity.this, "IN DER VIEW",
-									Toast.LENGTH_SHORT).show();
-						draggedOverView = true;
-					} else {
-						if (draggedOverView) {
-							Toast.makeText(StartActivity.this,
-									"UND WIEDER RAUS", Toast.LENGTH_SHORT)
-									.show();
-							draggedOverView = false;
-						}
-					}
 				}
 			}
-			return false;
+
+			return true;
 		}
 	};
+
+	private void removePopUp() {
+		layout.removeView(popUp);
+		added = false;
+	}
+
+	private void createPopUp(String text, int x, int y) {
+		LayoutParams params = new LayoutParams(LayoutParams.WRAP_CONTENT,
+				LayoutParams.WRAP_CONTENT);
+		popUp = new TextView(this);
+		popUp.setPadding(x, y, 0, 0);
+		popUp.setText(text);
+		popUp.setTextSize(20);
+		popUp.setTextColor(Color.RED);
+		layout.addView(popUp, params);
+		added = true;
+		popUp.setOnTouchListener(new OnTouchListener() {
+			
+			public boolean onTouch(View v, MotionEvent event) {
+				if (event.getAction() == MotionEvent.ACTION_DOWN
+						&& mySimpleXYPlot.containsPoint(event.getX(),
+								event.getY())) {
+					mySimpleXYPlot.setCursorPosition(event.getX(), event.getY());
+					long xAxisValue = mySimpleXYPlot.getGraphWidget()
+							.getXVal(event.getX()).longValue();
+					double yAxisValue = mySimpleXYPlot.getGraphWidget()
+							.getRangeCursorVal();
+					mySimpleXYPlot.getGraphWidget().setCursorLabelPaint(null);
+					String xAxisDate = new Date(xAxisValue).toLocaleString();
+					Log.d("OnGraphTouch", "X-Value: " + xAxisDate
+							+ "\nY-Value: " + yAxisValue);
+					if (!added)
+						createPopUp("Date: " + xAxisDate + "\nValue: "
+								+ cutNumber(yAxisValue), (int) event.getX(),
+								(int) event.getY());
+					else {
+						removePopUp();
+						createPopUp("Date: " + xAxisDate + "\nValue: "
+								+ cutNumber(yAxisValue), (int) event.getX(),
+								(int) event.getY());
+
+					}
+				}
+				return true;
+			}
+		});
+	
+	}
+
+	private double cutNumber(double input) {
+		input = input * 100;
+		int bla = (int) input;
+		double bla2 = bla / 100d;
+		return bla2;
+	}
 }
