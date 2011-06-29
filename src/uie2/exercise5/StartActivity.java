@@ -6,10 +6,13 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -39,6 +42,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.view.ViewParent;
+import android.webkit.MimeTypeMap;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.FrameLayout.LayoutParams;
@@ -47,11 +51,13 @@ import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.androidplot.series.XYSeries;
 import com.androidplot.xy.BoundaryMode;
 import com.androidplot.xy.LineAndPointFormatter;
 import com.androidplot.xy.SimpleXYSeries;
 import com.androidplot.xy.XYPlot;
 import com.androidplot.xy.XYStepMode;
+
 
 public class StartActivity extends Activity implements
 		OnPatientSelectedListener {
@@ -69,6 +75,12 @@ public class StartActivity extends Activity implements
 
 	private final static int START_DRAGGING = 0;
 	private final static int STOP_DRAGGING = 1;
+
+	private final static String TYPE_TEMPERATURE = "temperature";
+	private final static String TYPE_HEARTRATE = "heart rate";
+	private final static String TYPE_BLOODPRESSURE = "blood pressure";
+	private final static String TYPE_MEDICATION = "medication";
+
 	private boolean draggedOverView = false;
 
 	private FrameLayout rootLayout;
@@ -173,8 +185,8 @@ public class StartActivity extends Activity implements
 		params = new LayoutParams(LayoutParams.WRAP_CONTENT,
 				LayoutParams.WRAP_CONTENT);
 		activeMeasurementsInGraph = new ArrayList<String>();
-		chooseMeasurementType("heart rate");
-		//paint();
+		chooseMeasurementType(TYPE_HEARTRATE);
+		// paint();
 		updateButtons();
 	}
 
@@ -207,8 +219,8 @@ public class StartActivity extends Activity implements
 		while (types.moveToNext()) {
 			String type = types.getString(0);
 			if (activeMeasurementsInGraph.contains(type)
-					|| (type.startsWith("blood pressure") && activeMeasurementsInGraph
-							.contains("blood pressure"))) {
+					|| (type.startsWith(TYPE_BLOODPRESSURE) && activeMeasurementsInGraph
+							.contains(TYPE_BLOODPRESSURE))) {
 				LineAndPointFormatter formatter = new LineAndPointFormatter(
 						getColorByType(type), // line color
 						getColorByType(type), // point color
@@ -280,7 +292,7 @@ public class StartActivity extends Activity implements
 			startActivity(i);
 		} else if (item.getItemId() == R.id.add_measurement) {
 			ContentValues cv = new ContentValues();
-			cv.put("type", "temperature");
+			cv.put("type", TYPE_TEMPERATURE);
 			cv.put("metric", "celsius");
 			GregorianCalendar cal = new GregorianCalendar();
 			cal.setTimeInMillis(System.currentTimeMillis());
@@ -305,83 +317,96 @@ public class StartActivity extends Activity implements
 
 	private float normalizeValue(float value, String type) {
 		// Log.d("1337", " normalize type: " + type + " value: " + value);
-		if (type.equals("temperature"))
+		if (type.equals(TYPE_TEMPERATURE))
 			return ((100 / 9) * value - 389);
-		else if (type.equals("blood pressure diastole"))
+		else if (type.equals(TYPE_BLOODPRESSURE+" diastole"))
 			return (value / 2);
-		else if (type.equals("blood pressure systole"))
+		else if (type.equals(TYPE_BLOODPRESSURE+" systole"))
 			return (value / 2);
-		else if (type.equals("heart rate"))
+		else if (type.equals(TYPE_HEARTRATE))
 			return (value / (2.1f));
 		return -1;
 	}
-
+	
+	private float denormalizeValue(float normalizedValue, String type)
+	{
+		if (type.equals(TYPE_TEMPERATURE))
+			return ((normalizedValue*9)+(389*9))/100;
+		else if (type.equals(TYPE_BLOODPRESSURE+" diastole"))
+			return normalizedValue*2;
+		else if (type.equals(TYPE_BLOODPRESSURE+" systole"))
+			return normalizedValue*2;
+		else if (type.equals(TYPE_HEARTRATE))
+			return normalizedValue*2.1f;
+		return -1;
+	}
 	private Integer getColorByType(String type) {
-		if (type.equals("temperature"))
+		if (type.equals(TYPE_TEMPERATURE))
 			return Color.rgb(0, 200, 0);
-		else if (type.equals("blood pressure diastole"))
+		else if (type.equals(TYPE_BLOODPRESSURE+" diastole"))
 			return Color.rgb(127, 219, 255);
-		else if (type.equals("blood pressure systole"))
+		else if (type.equals(TYPE_BLOODPRESSURE+" systole"))
 			return Color.rgb(98, 12, 67);
-		else if (type.equals("heart rate"))
+		else if (type.equals(TYPE_HEARTRATE))
 			return Color.rgb(255, 0, 0);
 		return Color.rgb(0, 200, 0);
 	}
 
-	private void chooseMeasurement(int buttonID){
+	private void chooseMeasurement(int buttonID) {
 		switch (buttonID) {
 		case (R.id.bloodpressure):
-			chooseMeasurementType("blood pressure");
+			chooseMeasurementType(TYPE_BLOODPRESSURE);
 			break;
 		case (R.id.heartrate):
-			chooseMeasurementType("heart rate");
+			chooseMeasurementType(TYPE_HEARTRATE);
 			break;
 		case (R.id.temperature):
-			chooseMeasurementType("temperature");
+			chooseMeasurementType(TYPE_TEMPERATURE);
 			break;
 		case (R.id.timeofmedication):
-			chooseMeasurementType("medication");
+			chooseMeasurementType(TYPE_MEDICATION);
 			break;
 		}
 	}
-	
-	
-	// TYPE for timeofmedication = "medication"
+
+	// TYPE for timeofmedication = TYPE_MEDICATION
 	private void chooseMeasurementType(String type) {
 		if (activeMeasurementsInGraph.isEmpty()) {
 			activeMeasurementsInGraph.add(type);
 			ImageView image2 = (ImageView) findViewById(R.id.imageView2);
-			if (type.equals("temperature"))
+			if (type.equals(TYPE_TEMPERATURE))
 				image2.setImageResource(R.drawable.temperature);
-			else if (type.equals("blood pressure"))
+			else if (type.equals(TYPE_BLOODPRESSURE))
 				image2.setImageResource(R.drawable.bloodpressure);
-			else if (type.equals("heart rate"))
+			else if (type.equals(TYPE_HEARTRATE))
 				image2.setImageResource(R.drawable.heartrate);
 		} else if (activeMeasurementsInGraph.size() == 1) {
 			activeMeasurementsInGraph.add(type);
 			ImageView image1 = (ImageView) findViewById(R.id.imageView1);
-			if (type.equals("temperature"))
+			if (type.equals(TYPE_TEMPERATURE))
 				image1.setImageResource(R.drawable.temperature);
-			else if (type.equals("blood pressure"))
+			else if (type.equals(TYPE_BLOODPRESSURE))
 				image1.setImageResource(R.drawable.bloodpressure);
-			else if (type.equals("heart rate"))
+			else if (type.equals(TYPE_HEARTRATE))
 				image1.setImageResource(R.drawable.heartrate);
 		} else {
 			activeMeasurementsInGraph.remove(0);
 			activeMeasurementsInGraph.add(type);
 			ImageView image1 = (ImageView) findViewById(R.id.imageView1);
-			if (activeMeasurementsInGraph.get(0).equals("temperature"))
+			if (activeMeasurementsInGraph.get(0).equals(TYPE_TEMPERATURE))
 				image1.setImageResource(R.drawable.temperature);
-			else if (activeMeasurementsInGraph.get(0).equals("blood pressure"))
+			else if (activeMeasurementsInGraph.get(0)
+					.equals(TYPE_BLOODPRESSURE))
 				image1.setImageResource(R.drawable.bloodpressure);
-			else if (activeMeasurementsInGraph.get(0).equals("heart rate"))
+			else if (activeMeasurementsInGraph.get(0).equals(TYPE_HEARTRATE))
 				image1.setImageResource(R.drawable.heartrate);
 			ImageView image2 = (ImageView) findViewById(R.id.imageView2);
-			if (activeMeasurementsInGraph.get(1).equals("temperature"))
+			if (activeMeasurementsInGraph.get(1).equals(TYPE_TEMPERATURE))
 				image1.setImageResource(R.drawable.temperature);
-			else if (activeMeasurementsInGraph.get(1).equals("blood pressure"))
+			else if (activeMeasurementsInGraph.get(1)
+					.equals(TYPE_BLOODPRESSURE))
 				image1.setImageResource(R.drawable.bloodpressure);
-			else if (activeMeasurementsInGraph.get(1).equals("heart rate"))
+			else if (activeMeasurementsInGraph.get(1).equals(TYPE_HEARTRATE))
 				image1.setImageResource(R.drawable.heartrate);
 		}
 		for (int i = 0; i < activeMeasurementsInGraph.size(); i++) {
@@ -447,14 +472,13 @@ public class StartActivity extends Activity implements
 				String xAxisDate = new Date(xAxisValue).toLocaleString();
 				Log.d("OnGraphTouch", "X-Value: " + xAxisDate + "\nY-Value: "
 						+ yAxisValue);
+				getInfoTextFromLongDate(xAxisValue);
 				if (!added)
-					createPopUp("Date: " + xAxisDate + "\nValue: "
-							+ cutNumber(yAxisValue), (int) event.getX(),
+					createPopUp(getInfoTextFromLongDate(xAxisValue), (int) event.getX(),
 							(int) event.getY());
 				else {
 					removePopUp();
-					createPopUp("Date: " + xAxisDate + "\nValue: "
-							+ cutNumber(yAxisValue), (int) event.getX(),
+					createPopUp(getInfoTextFromLongDate(xAxisValue), (int) event.getX(),
 							(int) event.getY());
 
 				}
@@ -469,8 +493,7 @@ public class StartActivity extends Activity implements
 				String xAxisDate = new Date(xAxisValue).toLocaleString();
 				Log.d("OnGraphTouch", "X-Value: " + xAxisDate + "\nY-Value: "
 						+ yAxisValue);
-				popUp.setText("Date: " + xAxisDate + "\nValue: "
-						+ cutNumber(yAxisValue));
+				popUp.setText(getInfoTextFromLongDate(xAxisValue));
 				popUp.setPadding((int) event.getX(), (int) event.getY(), 0, 0);
 			}
 
@@ -490,12 +513,89 @@ public class StartActivity extends Activity implements
 		popUp.setPadding(x, y, 0, 0);
 		popUp.setText(text);
 		popUp.setTextSize(20);
-		popUp.setTextColor(Color.RED);
+		popUp.setTextColor(Color.BLACK);
 		graphFramelayout.addView(popUp, params);
-		added = true;
 		popUp.setOnTouchListener(myGraphTouchListener);
+		added = true;
 	}
 
+	private String getInfoTextFromLongDate(long dateValue) {
+		String dateString = "";
+		String temperatur = "";
+		String heartRate = "";
+		String bloodpressure = "";
+		String medication = "";
+		Set<XYSeries> seriesset = mySimpleXYPlot.getSeriesSet();
+		Iterator<XYSeries> seriesiterator = seriesset.iterator();
+		while(seriesiterator.hasNext())
+		{			
+			ArrayList<Long> dateValues = new ArrayList<Long>();
+			XYSeries serie =seriesiterator.next();
+			for(int i=0; i<serie.size();i++)
+			{
+				dateValues.add((Long) serie.getX(i));
+			}
+			
+		dateString = new Date(getNearestDate(dateValues, dateValue)).toLocaleString();
+		if (serie.getTitle().contains(TYPE_TEMPERATURE)) {
+			temperatur = "\nTemperatur: "+cutNumber(denormalizeValue((Float) serie.getY(getNearestAT(dateValues, dateValue)), serie.getTitle()))+" °C";
+		}	
+		if (serie.getTitle().contains(TYPE_BLOODPRESSURE+" diastole")) {
+			bloodpressure = "\nBloodpressure: "+denormalizeValue((Float) serie.getY(getNearestAT(dateValues, dateValue)), serie.getTitle());
+			
+		}
+		if (serie.getTitle().contains(TYPE_BLOODPRESSURE+" systole")) {
+			bloodpressure +=" - "+denormalizeValue((Float) serie.getY(getNearestAT(dateValues, dateValue)), serie.getTitle())+" bpm";
+			
+		}
+		if (serie.getTitle().contains(TYPE_MEDICATION)){
+			medication = "\nTime of Medication: "+denormalizeValue((Float) serie.getY(getNearestAT(dateValues, dateValue)), serie.getTitle());
+			
+			
+		}
+		if (serie.getTitle().contains(TYPE_HEARTRATE)){
+			heartRate = "\nHeart-Rate: "+denormalizeValue((Float) serie.getY(getNearestAT(dateValues, dateValue)), serie.getTitle())+" mmHg";
+		}
+		}
+		// walk through displayed measurements and get Values from the given
+		// long dateValue
+		// walk through arrays to find values which is nearest to the
+		// cursorpoint in graph
+
+		return dateString + temperatur + heartRate + bloodpressure + medication;
+	}
+
+	private int getNearestAT(ArrayList<Long> seriesDates, long dateValue)
+	{
+		int minimumAt=0;
+		long minimumDifference=Math.abs(seriesDates.get(0)-dateValue);
+		int i=0;
+		for (long entry : seriesDates ){
+			if (Math.abs(seriesDates.get(i)-dateValue)<minimumDifference){
+				minimumAt=i;
+				minimumDifference=Math.abs(seriesDates.get(i)-dateValue);
+			}
+			i++;
+		}
+		return minimumAt;
+	}
+	private long getNearestDate(ArrayList<Long> seriesDates, long dateValue)
+	{
+		int minimumAt=0;
+		long minimumDifference=Math.abs(seriesDates.get(0)-dateValue);
+		long nextDate = seriesDates.get(0);
+		int i=0;
+		for (long entry : seriesDates ){
+			if (Math.abs(seriesDates.get(i)-dateValue)<minimumDifference){
+				minimumAt=i;
+				minimumDifference=Math.abs(seriesDates.get(i)-dateValue);
+				nextDate=seriesDates.get(i);
+			}
+			i++;
+		}
+		return nextDate;
+	}
+	
 	private double cutNumber(double input) {
 		input = input * 100;
 		int bla = (int) input;
@@ -520,11 +620,17 @@ public class StartActivity extends Activity implements
 				status = STOP_DRAGGING;
 				Log.i("Drag", "Stopped Dragging");
 				// dragged view is moved in the view
-				
-				if (me.getRawX() > graphFramelayout.getX()+rootLayout.getWidth()/4
-						& me.getRawX() < graphFramelayout.getX()+graphFramelayout.getWidth()+rootLayout.getWidth()/4
-						& me.getRawY() < graphFramelayout.getY()+graphFramelayout.getHeight()+rootLayout.getHeight()/6
-						& me.getRawY() > graphFramelayout.getY()+rootLayout.getHeight()/6) {
+
+				if (me.getRawX() > graphFramelayout.getX()
+						+ rootLayout.getWidth() / 4
+						& me.getRawX() < graphFramelayout.getX()
+								+ graphFramelayout.getWidth()
+								+ rootLayout.getWidth() / 4
+						& me.getRawY() < graphFramelayout.getY()
+								+ graphFramelayout.getHeight()
+								+ rootLayout.getHeight() / 6
+						& me.getRawY() > graphFramelayout.getY()
+								+ rootLayout.getHeight() / 6) {
 					chooseMeasurement(view.getId());
 					updateButtons();
 				}
@@ -541,68 +647,69 @@ public class StartActivity extends Activity implements
 			return true;
 		}
 	};
-	
+
 	private OnClickListener myDismissButtonListener = new OnClickListener() {
-		
+
 		public void onClick(View v) {
 			switch (v.getId()) {
 			case (R.id.bloodpressure):
-				activeMeasurementsInGraph.remove("blood pressure");
+				activeMeasurementsInGraph.remove(TYPE_BLOODPRESSURE);
 				break;
 			case (R.id.heartrate):
-				activeMeasurementsInGraph.remove("heart rate");
+				activeMeasurementsInGraph.remove(TYPE_HEARTRATE);
 				break;
 			case (R.id.temperature):
-				activeMeasurementsInGraph.remove("temperature");
+				activeMeasurementsInGraph.remove(TYPE_TEMPERATURE);
 				break;
 			case (R.id.timeofmedication):
-				activeMeasurementsInGraph.remove("medication");
+				activeMeasurementsInGraph.remove(TYPE_MEDICATION);
 				break;
 			}
 			updateButtons();
+			paint();
 		}
 	};
-	
-	private void updateButtons(){
-		if (activeMeasurementsInGraph.contains("temperature")){
+
+	private void updateButtons() {
+		if (activeMeasurementsInGraph.contains(TYPE_TEMPERATURE)) {
 			temperature_button.setBackgroundResource(R.drawable.buttonbggreen);
 			temperature_button.setOnClickListener(myDismissButtonListener);
 			temperature_button.setOnTouchListener(null);
-		}
-		else{
+		} else {
 			temperature_button.setBackgroundResource(R.drawable.buttonbgred);
 			temperature_button.setOnClickListener(null);
 			temperature_button.setOnTouchListener(myOnDragListener);
 		}
-		if (activeMeasurementsInGraph.contains("blood pressure")){
-			blood_pressure_button.setBackgroundResource(R.drawable.buttonbggreen);
+		if (activeMeasurementsInGraph.contains(TYPE_BLOODPRESSURE)) {
+			blood_pressure_button
+					.setBackgroundResource(R.drawable.buttonbggreen);
 			blood_pressure_button.setOnClickListener(myDismissButtonListener);
 			blood_pressure_button.setOnTouchListener(null);
-		}
-		else{
+		} else {
 			blood_pressure_button.setBackgroundResource(R.drawable.buttonbgred);
 			blood_pressure_button.setOnClickListener(null);
 			blood_pressure_button.setOnTouchListener(myOnDragListener);
 		}
-			
-		if (activeMeasurementsInGraph.contains("heart rate")){
+
+		if (activeMeasurementsInGraph.contains(TYPE_HEARTRATE)) {
 			heart_rate_button.setBackgroundResource(R.drawable.buttonbggreen);
 			heart_rate_button.setOnClickListener(myDismissButtonListener);
 			heart_rate_button.setOnTouchListener(null);
-		}
-		else{
+		} else {
 			heart_rate_button.setBackgroundResource(R.drawable.buttonbgred);
 			heart_rate_button.setOnClickListener(null);
 			heart_rate_button.setOnTouchListener(myOnDragListener);
 		}
-		
-		if (activeMeasurementsInGraph.contains("medication")){
-			time_of_medication_button.setBackgroundResource(R.drawable.buttonbggreen);
-			time_of_medication_button.setOnClickListener(myDismissButtonListener);
+
+		if (activeMeasurementsInGraph.contains(TYPE_MEDICATION)) {
+			time_of_medication_button
+					.setBackgroundResource(R.drawable.buttonbggreen);
+			time_of_medication_button
+					.setOnClickListener(myDismissButtonListener);
 			time_of_medication_button.setOnTouchListener(null);
-		}
-		else{
-			time_of_medication_button.setBackgroundResource(R.drawable.buttonbgred);
+		} else {
+			time_of_medication_button
+					.setBackgroundResource(R.drawable.buttonbgred);
 			time_of_medication_button.setOnClickListener(null);
 			time_of_medication_button.setOnTouchListener(myOnDragListener);
 		}
