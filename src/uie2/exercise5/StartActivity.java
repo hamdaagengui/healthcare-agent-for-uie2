@@ -296,6 +296,7 @@ public class StartActivity extends Activity implements
 			activeMeasurementsInGraph.add(type);
 		}
 	}
+	
 	public void setPatient(long patientId) {
 		Cursor c = getContentResolver().query(
 				MyContentProvider.PATIENT_URI,
