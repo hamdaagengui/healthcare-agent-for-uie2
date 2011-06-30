@@ -139,7 +139,6 @@ public class StartActivity extends Activity implements
 			}
 		}
 	}
-
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		series = new ArrayList<SimpleXYSeries>();
@@ -230,6 +229,11 @@ public class StartActivity extends Activity implements
 				lineP.setStrokeWidth(8);
 				lineP.setColor(getColorByType(type));
 				formatter.setLinePaint(lineP);
+				Paint vertexP = new Paint();
+				vertexP.setStyle(Paint.Style.STROKE);
+				vertexP.setStrokeWidth(14);
+				vertexP.setColor(getColorByType(type));
+				formatter.setVertexPaint(vertexP);
 				Cursor values = getContentResolver().query(
 						MyContentProvider.MEASUREMENT_URI,
 						new String[] { "date", "time", "value" },
@@ -325,6 +329,8 @@ public class StartActivity extends Activity implements
 			return (value / 2);
 		else if (type.equals(TYPE_HEARTRATE))
 			return (value / (2.1f));
+		else if (type.equals(TYPE_MEDICATION))
+			return 50f;
 		return -1;
 	}
 	
@@ -349,6 +355,8 @@ public class StartActivity extends Activity implements
 			return Color.rgb(98, 12, 67);
 		else if (type.equals(TYPE_HEARTRATE))
 			return Color.rgb(255, 0, 0);
+		else if (type.equals(TYPE_MEDICATION))
+			return Color.rgb(255,255,255);
 		return Color.rgb(0, 200, 0);
 	}
 
@@ -549,7 +557,7 @@ public class StartActivity extends Activity implements
 			
 		}
 		if (serie.getTitle().contains(TYPE_MEDICATION)){
-			medication = "\nTime of Medication: "+denormalizeValue((Float) serie.getY(getNearestAT(dateValues, dateValue)), serie.getTitle());
+			medication = "\nMedication: xyz";
 			
 			
 		}
