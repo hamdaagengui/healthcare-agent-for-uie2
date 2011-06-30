@@ -139,6 +139,7 @@ public class StartActivity extends Activity implements
 			}
 		}
 	}
+	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		series = new ArrayList<SimpleXYSeries>();
@@ -187,8 +188,10 @@ public class StartActivity extends Activity implements
 		chooseMeasurementType(TYPE_HEARTRATE);
 		// paint();
 		updateButtons();
+		this.id = 673928518;
+		setPatient(673928518);
 	}
-
+	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		MenuInflater inflater = getMenuInflater();
@@ -215,6 +218,8 @@ public class StartActivity extends Activity implements
 				MyContentProvider.MEASUREMENT_URI,
 				new String[] { "DISTINCT type" }, "patientId=" + id, null,
 				"type ASC");
+		if (types.getCount()>0)
+		{	
 		while (types.moveToNext()) {
 			String type = types.getString(0);
 			if (activeMeasurementsInGraph.contains(type)
@@ -276,6 +281,7 @@ public class StartActivity extends Activity implements
 					mySimpleXYPlot.setCursorPosition(0, 0);
 				}
 			}
+		}
 		}
 	}
 
@@ -388,6 +394,8 @@ public class StartActivity extends Activity implements
 				image2.setImageResource(R.drawable.bloodpressure);
 			else if (type.equals(TYPE_HEARTRATE))
 				image2.setImageResource(R.drawable.heartrate);
+			else if (type.equals(TYPE_MEDICATION))
+				image2.setImageResource(R.drawable.black);
 		} else if (activeMeasurementsInGraph.size() == 1) {
 			activeMeasurementsInGraph.add(type);
 			ImageView image1 = (ImageView) findViewById(R.id.imageView1);
@@ -397,6 +405,8 @@ public class StartActivity extends Activity implements
 				image1.setImageResource(R.drawable.bloodpressure);
 			else if (type.equals(TYPE_HEARTRATE))
 				image1.setImageResource(R.drawable.heartrate);
+			else if (type.equals(TYPE_MEDICATION))
+				image1.setImageResource(R.drawable.black);
 		} else {
 			activeMeasurementsInGraph.remove(0);
 			activeMeasurementsInGraph.add(type);
@@ -408,14 +418,18 @@ public class StartActivity extends Activity implements
 				image1.setImageResource(R.drawable.bloodpressure);
 			else if (activeMeasurementsInGraph.get(0).equals(TYPE_HEARTRATE))
 				image1.setImageResource(R.drawable.heartrate);
+			else if (activeMeasurementsInGraph.get(0).equals(TYPE_MEDICATION))
+				image1.setImageResource(R.drawable.black);
 			ImageView image2 = (ImageView) findViewById(R.id.imageView2);
 			if (activeMeasurementsInGraph.get(1).equals(TYPE_TEMPERATURE))
-				image1.setImageResource(R.drawable.temperature);
+				image2.setImageResource(R.drawable.temperature);
 			else if (activeMeasurementsInGraph.get(1)
 					.equals(TYPE_BLOODPRESSURE))
-				image1.setImageResource(R.drawable.bloodpressure);
+				image2.setImageResource(R.drawable.bloodpressure);
 			else if (activeMeasurementsInGraph.get(1).equals(TYPE_HEARTRATE))
-				image1.setImageResource(R.drawable.heartrate);
+				image2.setImageResource(R.drawable.heartrate);
+			else if (activeMeasurementsInGraph.get(1).equals(TYPE_MEDICATION))
+				image2.setImageResource(R.drawable.black);
 		}
 		for (int i = 0; i < activeMeasurementsInGraph.size(); i++) {
 			Log.d("1338", i + "im graphen: " + activeMeasurementsInGraph.get(i));
@@ -424,6 +438,7 @@ public class StartActivity extends Activity implements
 	}
 
 	public void setPatient(long patientId) {
+		Log.d("1339", "patientid: "+patientId);
 		Cursor c = getContentResolver().query(
 				MyContentProvider.PATIENT_URI,
 				new String[] { "lastname", "firstname", "dateofbirth",
@@ -659,6 +674,8 @@ public class StartActivity extends Activity implements
 	private OnClickListener myDismissButtonListener = new OnClickListener() {
 
 		public void onClick(View v) {
+			if(activeMeasurementsInGraph.size()>1)
+			{
 			switch (v.getId()) {
 			case (R.id.bloodpressure):
 				activeMeasurementsInGraph.remove(TYPE_BLOODPRESSURE);
@@ -675,6 +692,7 @@ public class StartActivity extends Activity implements
 			}
 			updateButtons();
 			paint();
+			}
 		}
 	};
 
