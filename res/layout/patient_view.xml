@@ -57,8 +57,8 @@
 		android:layout_height="fill_parent" android:orientation="horizontal">
 		<LinearLayout android:layout_width="fill_parent"
 			android:layout_height="fill_parent" android:layout_weight="1">
-			<ImageView android:layout_height="555px" android:layout_width="41px" android:id="@+id/imageView1" android:src="@drawable/black"></ImageView>
-			<ImageView android:layout_height="555px" android:layout_width="41px" android:id="@+id/imageView2" android:src="@drawable/black"></ImageView>
+			<ImageView android:layout_height="580px" android:layout_width="41px" android:id="@+id/imageView1" android:src="@drawable/black"></ImageView>
+			<ImageView android:layout_height="580px" android:layout_width="41px" android:id="@+id/imageView2" android:src="@drawable/black"></ImageView>
 			<FrameLayout
 				android:id="@+id/graphFrameLayout"
 				android:layout_width="fill_parent" android:layout_height="fill_parent">
