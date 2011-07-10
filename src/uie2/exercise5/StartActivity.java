@@ -6,7 +6,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Iterator;
@@ -22,7 +21,6 @@ import org.w3c.dom.NodeList;
 
 import uie2.exercise5.PatientListFragment.OnPatientSelectedListener;
 import android.app.Activity;
-import android.app.Fragment;
 import android.app.ListFragment;
 import android.content.ContentValues;
 import android.content.Intent;
@@ -34,6 +32,8 @@ import android.graphics.Paint;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
+import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -41,12 +41,13 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
-import android.view.ViewParent;
-import android.webkit.MimeTypeMap;
+import android.widget.Adapter;
+import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.FrameLayout.LayoutParams;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -57,7 +58,6 @@ import com.androidplot.xy.LineAndPointFormatter;
 import com.androidplot.xy.SimpleXYSeries;
 import com.androidplot.xy.XYPlot;
 import com.androidplot.xy.XYStepMode;
-
 
 public class StartActivity extends Activity implements
 		OnPatientSelectedListener {
@@ -139,14 +139,14 @@ public class StartActivity extends Activity implements
 			}
 		}
 	}
-	
+
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		series = new ArrayList<SimpleXYSeries>();
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
 
-		fillDatabase();
+		// fillDatabase();
 
 		ListFragment patients = (ListFragment) getFragmentManager()
 				.findFragmentById(R.id.PatientListFragment);
@@ -159,7 +159,7 @@ public class StartActivity extends Activity implements
 						R.id.textViewName, R.id.textViewFirstname,
 						R.id.textViewDateofbirth });
 		patients.setListAdapter(adapter);
-
+		
 		Cursor c = getContentResolver().query(MyContentProvider.PATIENT_URI,
 				new String[] { "_id" }, null, null, null);
 		c.moveToFirst();
@@ -191,7 +191,7 @@ public class StartActivity extends Activity implements
 		this.id = 673928518;
 		setPatient(673928518);
 	}
-	
+
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		MenuInflater inflater = getMenuInflater();
@@ -218,70 +218,68 @@ public class StartActivity extends Activity implements
 				MyContentProvider.MEASUREMENT_URI,
 				new String[] { "DISTINCT type" }, "patientId=" + id, null,
 				"type ASC");
-		if (types.getCount()>0)
-		{	
-		while (types.moveToNext()) {
-			String type = types.getString(0);
-			if (activeMeasurementsInGraph.contains(type)
-					|| (type.startsWith(TYPE_BLOODPRESSURE) && activeMeasurementsInGraph
-							.contains(TYPE_BLOODPRESSURE))) {
-				LineAndPointFormatter formatter = new LineAndPointFormatter(
-						getColorByType(type), // line color
-						getColorByType(type), // point color
-						null); // fill color (optional)
-				Paint lineP = new Paint();
-				lineP.setStyle(Paint.Style.STROKE);
-				lineP.setStrokeWidth(8);
-				lineP.setColor(getColorByType(type));
-				formatter.setLinePaint(lineP);
-				Paint vertexP = new Paint();
-				vertexP.setStyle(Paint.Style.STROKE);
-				vertexP.setStrokeWidth(14);
-				vertexP.setColor(getColorByType(type));
-				formatter.setVertexPaint(vertexP);
-				Cursor values = getContentResolver().query(
-						MyContentProvider.MEASUREMENT_URI,
-						new String[] { "date", "time", "value" },
-						"patientID==" + id + " AND type=\"" + type + "\"",
-						null, null);
-				if (values.getCount() > 0) {
-					Log.d("1337", "" + values.getCount());
-					ArrayList<Number> x = new ArrayList<Number>(
-							values.getCount());
-					ArrayList<Number> y = new ArrayList<Number>(
-							values.getCount());
-					while (values.moveToNext()) {
-						x.add(toTimestamp(values.getString(0),
-								values.getString(1)));
-						y.add(normalizeValue((values.getFloat(2)), type));
+		if (types.getCount() > 0) {
+			while (types.moveToNext()) {
+				String type = types.getString(0);
+				if (activeMeasurementsInGraph.contains(type)
+						|| (type.startsWith(TYPE_BLOODPRESSURE) && activeMeasurementsInGraph
+								.contains(TYPE_BLOODPRESSURE))) {
+					LineAndPointFormatter formatter = new LineAndPointFormatter(
+							getColorByType(type), // line color
+							getColorByType(type), // point color
+							null); // fill color (optional)
+					Paint lineP = new Paint();
+					lineP.setStyle(Paint.Style.STROKE);
+					lineP.setStrokeWidth(8);
+					lineP.setColor(getColorByType(type));
+					formatter.setLinePaint(lineP);
+					Paint vertexP = new Paint();
+					vertexP.setStyle(Paint.Style.STROKE);
+					vertexP.setStrokeWidth(14);
+					vertexP.setColor(getColorByType(type));
+					formatter.setVertexPaint(vertexP);
+					Cursor values = getContentResolver().query(
+							MyContentProvider.MEASUREMENT_URI,
+							new String[] { "date", "time", "value" },
+							"patientID==" + id + " AND type=\"" + type + "\"",
+							null, null);
+					if (values.getCount() > 0) {
+						ArrayList<Number> x = new ArrayList<Number>(
+								values.getCount());
+						ArrayList<Number> y = new ArrayList<Number>(
+								values.getCount());
+						while (values.moveToNext()) {
+							x.add(toTimestamp(values.getString(0),
+									values.getString(1)));
+							y.add(normalizeValue((values.getFloat(2)), type));
+						}
+						SimpleXYSeries serie = new SimpleXYSeries(x, y, type);
+						series.add(serie);
+						mySimpleXYPlot.addSeries(serie, formatter);
+						mySimpleXYPlot.setRangeBoundaries(0, 100,
+								BoundaryMode.AUTO);
+						mySimpleXYPlot.setRangeLabel("");
+						mySimpleXYPlot.setRangeStepValue(22);
+						mySimpleXYPlot.getGraphWidget().getRangeLabelPaint()
+								.setAlpha(0);
+						mySimpleXYPlot.getGraphWidget()
+								.getRangeOriginLabelPaint().setAlpha(0);
+						mySimpleXYPlot.setDomainLabel("Date");
+						// mySimpleXYPlot.setDomainStep(XYStepMode.INCREMENT_BY_VAL,
+						// 1);
+						mySimpleXYPlot.setDomainStep(XYStepMode.SUBDIVIDE,
+								values.getCount());
+						values.close();
+						mySimpleXYPlot.setDomainValueFormat(new MyDateFormat());
+						mySimpleXYPlot.disableAllMarkup();
 					}
-					SimpleXYSeries serie = new SimpleXYSeries(x, y, type);
-					series.add(serie);
-					mySimpleXYPlot.addSeries(serie, formatter);
-					mySimpleXYPlot
-							.setRangeBoundaries(0, 100, BoundaryMode.AUTO);
-					mySimpleXYPlot.setRangeLabel("");
-					mySimpleXYPlot.setRangeStepValue(22);
-					mySimpleXYPlot.getGraphWidget().getRangeLabelPaint()
-							.setAlpha(0);
-					mySimpleXYPlot.getGraphWidget().getRangeOriginLabelPaint()
-							.setAlpha(0);
-					mySimpleXYPlot.setDomainLabel("Date");
-					// mySimpleXYPlot.setDomainStep(XYStepMode.INCREMENT_BY_VAL,
-					// 1);
-					mySimpleXYPlot.setDomainStep(XYStepMode.SUBDIVIDE,
-							values.getCount());
-					values.close();
-					mySimpleXYPlot.setDomainValueFormat(new MyDateFormat());
-					mySimpleXYPlot.disableAllMarkup();
-				}
-				mySimpleXYPlot.redraw();
-				if (added) {
-					removePopUp();
-					mySimpleXYPlot.setCursorPosition(0, 0);
+					mySimpleXYPlot.redraw();
+					if (added) {
+						removePopUp();
+						mySimpleXYPlot.setCursorPosition(0, 0);
+					}
 				}
 			}
-		}
 		}
 	}
 
@@ -329,9 +327,9 @@ public class StartActivity extends Activity implements
 		// Log.d("1337", " normalize type: " + type + " value: " + value);
 		if (type.equals(TYPE_TEMPERATURE))
 			return ((100 / 9) * value - 389);
-		else if (type.equals(TYPE_BLOODPRESSURE+" diastole"))
+		else if (type.equals(TYPE_BLOODPRESSURE + " diastole"))
 			return (value / 2);
-		else if (type.equals(TYPE_BLOODPRESSURE+" systole"))
+		else if (type.equals(TYPE_BLOODPRESSURE + " systole"))
 			return (value / 2);
 		else if (type.equals(TYPE_HEARTRATE))
 			return (value / (2.1f));
@@ -339,30 +337,30 @@ public class StartActivity extends Activity implements
 			return 50f;
 		return -1;
 	}
-	
-	private float denormalizeValue(float normalizedValue, String type)
-	{
+
+	private float denormalizeValue(float normalizedValue, String type) {
 		if (type.equals(TYPE_TEMPERATURE))
-			return ((normalizedValue*9)+(389*9))/100;
-		else if (type.equals(TYPE_BLOODPRESSURE+" diastole"))
-			return normalizedValue*2;
-		else if (type.equals(TYPE_BLOODPRESSURE+" systole"))
-			return normalizedValue*2;
+			return ((normalizedValue * 9) + (389 * 9)) / 100;
+		else if (type.equals(TYPE_BLOODPRESSURE + " diastole"))
+			return normalizedValue * 2;
+		else if (type.equals(TYPE_BLOODPRESSURE + " systole"))
+			return normalizedValue * 2;
 		else if (type.equals(TYPE_HEARTRATE))
-			return normalizedValue*2.1f;
+			return normalizedValue * 2.1f;
 		return -1;
 	}
+
 	private Integer getColorByType(String type) {
 		if (type.equals(TYPE_TEMPERATURE))
 			return Color.rgb(0, 200, 0);
-		else if (type.equals(TYPE_BLOODPRESSURE+" diastole"))
+		else if (type.equals(TYPE_BLOODPRESSURE + " diastole"))
 			return Color.rgb(127, 219, 255);
-		else if (type.equals(TYPE_BLOODPRESSURE+" systole"))
+		else if (type.equals(TYPE_BLOODPRESSURE + " systole"))
 			return Color.rgb(98, 12, 67);
 		else if (type.equals(TYPE_HEARTRATE))
 			return Color.rgb(255, 0, 0);
 		else if (type.equals(TYPE_MEDICATION))
-			return Color.rgb(255,255,255);
+			return Color.rgb(255, 255, 255);
 		return Color.rgb(0, 200, 0);
 	}
 
@@ -438,7 +436,7 @@ public class StartActivity extends Activity implements
 	}
 
 	public void setPatient(long patientId) {
-		Log.d("1339", "patientid: "+patientId);
+		Log.d("1339", "patientid: " + patientId);
 		Cursor c = getContentResolver().query(
 				MyContentProvider.PATIENT_URI,
 				new String[] { "lastname", "firstname", "dateofbirth",
@@ -497,12 +495,12 @@ public class StartActivity extends Activity implements
 						+ yAxisValue);
 				getInfoTextFromLongDate(xAxisValue);
 				if (!added)
-					createPopUp(getInfoTextFromLongDate(xAxisValue), (int) event.getX(),
-							(int) event.getY());
+					createPopUp(getInfoTextFromLongDate(xAxisValue),
+							(int) event.getX(), (int) event.getY());
 				else {
 					removePopUp();
-					createPopUp(getInfoTextFromLongDate(xAxisValue), (int) event.getX(),
-							(int) event.getY());
+					createPopUp(getInfoTextFromLongDate(xAxisValue),
+							(int) event.getX(), (int) event.getY());
 
 				}
 			}
@@ -550,35 +548,44 @@ public class StartActivity extends Activity implements
 		String medication = "";
 		Set<XYSeries> seriesset = mySimpleXYPlot.getSeriesSet();
 		Iterator<XYSeries> seriesiterator = seriesset.iterator();
-		while(seriesiterator.hasNext())
-		{			
+		while (seriesiterator.hasNext()) {
 			ArrayList<Long> dateValues = new ArrayList<Long>();
-			XYSeries serie =seriesiterator.next();
-			for(int i=0; i<serie.size();i++)
-			{
+			XYSeries serie = seriesiterator.next();
+			for (int i = 0; i < serie.size(); i++) {
 				dateValues.add((Long) serie.getX(i));
 			}
-			
-		dateString = new Date(getNearestDate(dateValues, dateValue)).toLocaleString();
-		if (serie.getTitle().contains(TYPE_TEMPERATURE)) {
-			temperatur = "\nTemperatur: "+cutNumber(denormalizeValue((Float) serie.getY(getNearestAT(dateValues, dateValue)), serie.getTitle()))+" °C";
-		}	
-		if (serie.getTitle().contains(TYPE_BLOODPRESSURE+" diastole")) {
-			bloodpressure = "\nBloodpressure: "+denormalizeValue((Float) serie.getY(getNearestAT(dateValues, dateValue)), serie.getTitle());
-			
-		}
-		if (serie.getTitle().contains(TYPE_BLOODPRESSURE+" systole")) {
-			bloodpressure +=" - "+denormalizeValue((Float) serie.getY(getNearestAT(dateValues, dateValue)), serie.getTitle())+" bpm";
-			
-		}
-		if (serie.getTitle().contains(TYPE_MEDICATION)){
-			medication = "\nMedication: xyz";
-			
-			
-		}
-		if (serie.getTitle().contains(TYPE_HEARTRATE)){
-			heartRate = "\nHeart-Rate: "+denormalizeValue((Float) serie.getY(getNearestAT(dateValues, dateValue)), serie.getTitle())+" mmHg";
-		}
+
+			dateString = new Date(getNearestDate(dateValues, dateValue))
+					.toLocaleString();
+			if (serie.getTitle().contains(TYPE_TEMPERATURE)) {
+				temperatur = "\nTemperatur: "
+						+ cutNumber(denormalizeValue(
+								(Float) serie.getY(getNearestAT(dateValues,
+										dateValue)), serie.getTitle())) + " °C";
+			}
+			if (serie.getTitle().contains(TYPE_BLOODPRESSURE + " diastole")) {
+				bloodpressure = "\nBloodpressure: "
+						+ denormalizeValue((Float) serie.getY(getNearestAT(
+								dateValues, dateValue)), serie.getTitle());
+
+			}
+			if (serie.getTitle().contains(TYPE_BLOODPRESSURE + " systole")) {
+				bloodpressure += " - "
+						+ denormalizeValue((Float) serie.getY(getNearestAT(
+								dateValues, dateValue)), serie.getTitle())
+						+ " bpm";
+
+			}
+			if (serie.getTitle().contains(TYPE_MEDICATION)) {
+				medication = "\nMedication: xyz";
+
+			}
+			if (serie.getTitle().contains(TYPE_HEARTRATE)) {
+				heartRate = "\nHeart-Rate: "
+						+ denormalizeValue((Float) serie.getY(getNearestAT(
+								dateValues, dateValue)), serie.getTitle())
+						+ " mmHg";
+			}
 		}
 		// walk through displayed measurements and get Values from the given
 		// long dateValue
@@ -588,37 +595,36 @@ public class StartActivity extends Activity implements
 		return dateString + temperatur + heartRate + bloodpressure + medication;
 	}
 
-	private int getNearestAT(ArrayList<Long> seriesDates, long dateValue)
-	{
-		int minimumAt=0;
-		long minimumDifference=Math.abs(seriesDates.get(0)-dateValue);
-		int i=0;
-		for (long entry : seriesDates ){
-			if (Math.abs(seriesDates.get(i)-dateValue)<minimumDifference){
-				minimumAt=i;
-				minimumDifference=Math.abs(seriesDates.get(i)-dateValue);
+	private int getNearestAT(ArrayList<Long> seriesDates, long dateValue) {
+		int minimumAt = 0;
+		long minimumDifference = Math.abs(seriesDates.get(0) - dateValue);
+		int i = 0;
+		for (long entry : seriesDates) {
+			if (Math.abs(seriesDates.get(i) - dateValue) < minimumDifference) {
+				minimumAt = i;
+				minimumDifference = Math.abs(seriesDates.get(i) - dateValue);
 			}
 			i++;
 		}
 		return minimumAt;
 	}
-	private long getNearestDate(ArrayList<Long> seriesDates, long dateValue)
-	{
-		int minimumAt=0;
-		long minimumDifference=Math.abs(seriesDates.get(0)-dateValue);
+
+	private long getNearestDate(ArrayList<Long> seriesDates, long dateValue) {
+		int minimumAt = 0;
+		long minimumDifference = Math.abs(seriesDates.get(0) - dateValue);
 		long nextDate = seriesDates.get(0);
-		int i=0;
-		for (long entry : seriesDates ){
-			if (Math.abs(seriesDates.get(i)-dateValue)<minimumDifference){
-				minimumAt=i;
-				minimumDifference=Math.abs(seriesDates.get(i)-dateValue);
-				nextDate=seriesDates.get(i);
+		int i = 0;
+		for (long entry : seriesDates) {
+			if (Math.abs(seriesDates.get(i) - dateValue) < minimumDifference) {
+				minimumAt = i;
+				minimumDifference = Math.abs(seriesDates.get(i) - dateValue);
+				nextDate = seriesDates.get(i);
 			}
 			i++;
 		}
 		return nextDate;
 	}
-	
+
 	private double cutNumber(double input) {
 		input = input * 100;
 		int bla = (int) input;
@@ -674,24 +680,23 @@ public class StartActivity extends Activity implements
 	private OnClickListener myDismissButtonListener = new OnClickListener() {
 
 		public void onClick(View v) {
-			if(activeMeasurementsInGraph.size()>1)
-			{
-			switch (v.getId()) {
-			case (R.id.bloodpressure):
-				activeMeasurementsInGraph.remove(TYPE_BLOODPRESSURE);
-				break;
-			case (R.id.heartrate):
-				activeMeasurementsInGraph.remove(TYPE_HEARTRATE);
-				break;
-			case (R.id.temperature):
-				activeMeasurementsInGraph.remove(TYPE_TEMPERATURE);
-				break;
-			case (R.id.timeofmedication):
-				activeMeasurementsInGraph.remove(TYPE_MEDICATION);
-				break;
-			}
-			updateButtons();
-			paint();
+			if (activeMeasurementsInGraph.size() > 1) {
+				switch (v.getId()) {
+				case (R.id.bloodpressure):
+					activeMeasurementsInGraph.remove(TYPE_BLOODPRESSURE);
+					break;
+				case (R.id.heartrate):
+					activeMeasurementsInGraph.remove(TYPE_HEARTRATE);
+					break;
+				case (R.id.temperature):
+					activeMeasurementsInGraph.remove(TYPE_TEMPERATURE);
+					break;
+				case (R.id.timeofmedication):
+					activeMeasurementsInGraph.remove(TYPE_MEDICATION);
+					break;
+				}
+				updateButtons();
+				paint();
 			}
 		}
 	};
@@ -740,5 +745,4 @@ public class StartActivity extends Activity implements
 			time_of_medication_button.setOnTouchListener(myOnDragListener);
 		}
 	}
-
 }
