@@ -32,8 +32,6 @@ import android.graphics.Paint;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
-import android.view.ContextMenu;
-import android.view.ContextMenu.ContextMenuInfo;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -41,18 +39,16 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
-import android.widget.Adapter;
-import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.FrameLayout.LayoutParams;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.androidplot.series.XYSeries;
+import com.androidplot.ui.Formatter;
 import com.androidplot.xy.BoundaryMode;
 import com.androidplot.xy.LineAndPointFormatter;
 import com.androidplot.xy.SimpleXYSeries;
@@ -91,62 +87,16 @@ public class StartActivity extends Activity implements
 	private XYPlot mySimpleXYPlot;
 	private boolean added;
 	private FrameLayout graphFramelayout;
-
-	private void fillDatabase() {
-		InputStream input = null;
-		try {
-			DocumentBuilderFactory factory = DocumentBuilderFactory
-					.newInstance();
-			DocumentBuilder builder = factory.newDocumentBuilder();
-			input = getResources().openRawResource(R.raw.ehr);
-			Document doc = builder.parse(input);
-			doc.getDocumentElement().normalize();
-			NodeList patientList = doc.getElementsByTagName("patient");
-			for (int i = 0; i < patientList.getLength(); i++) {
-				Patient patient = new Patient(patientList.item(i));
-				try {
-					getContentResolver().insert(MyContentProvider.PATIENT_URI,
-							patient.getValues());
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-
-				NodeList m_nodes = patientList.item(i).getChildNodes().item(1)
-						.getChildNodes();
-				for (int j = 1; j < m_nodes.getLength(); j += 2) {
-					Measurement measurement = new Measurement(m_nodes.item(j),
-							patient.getId());
-					try {
-						getContentResolver().insert(
-								MyContentProvider.MEASUREMENT_URI,
-								measurement.getValues());
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-				}
-			}
-			getContentResolver().notifyChange(
-					MyContentProvider.MEASUREMENT_URI, null);
-			getContentResolver().notifyChange(MyContentProvider.PATIENT_URI,
-					null);
-		} catch (Exception e) {
-			e.printStackTrace();
-		} finally {
-			try {
-				input.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-	}
+	private long x_min;
+	private long x_max;
+	private long lowerBoundary;
+	private long upperBoundary;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		series = new ArrayList<SimpleXYSeries>();
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
-
-		// fillDatabase();
 
 		ListFragment patients = (ListFragment) getFragmentManager()
 				.findFragmentById(R.id.PatientListFragment);
@@ -159,7 +109,7 @@ public class StartActivity extends Activity implements
 						R.id.textViewName, R.id.textViewFirstname,
 						R.id.textViewDateofbirth });
 		patients.setListAdapter(adapter);
-		
+
 		Cursor c = getContentResolver().query(MyContentProvider.PATIENT_URI,
 				new String[] { "_id" }, null, null, null);
 		c.moveToFirst();
@@ -185,11 +135,12 @@ public class StartActivity extends Activity implements
 		params = new LayoutParams(LayoutParams.WRAP_CONTENT,
 				LayoutParams.WRAP_CONTENT);
 		activeMeasurementsInGraph = new ArrayList<String>();
-		chooseMeasurementType(TYPE_HEARTRATE);
-		// paint();
 		updateButtons();
-		this.id = 673928518;
-		setPatient(673928518);
+
+		setPatient(id);
+		chooseMeasurementType(TYPE_HEARTRATE);
+		updateButtons();
+		paint();
 	}
 
 	@Override
@@ -213,6 +164,8 @@ public class StartActivity extends Activity implements
 		series.clear();
 		// Create a formatter to use for drawing a series using
 		// LineAndPointRenderer:
+		x_min = Long.MAX_VALUE;
+		x_max = Long.MIN_VALUE;
 
 		Cursor types = getContentResolver().query(
 				MyContentProvider.MEASUREMENT_URI,
@@ -249,9 +202,17 @@ public class StartActivity extends Activity implements
 						ArrayList<Number> y = new ArrayList<Number>(
 								values.getCount());
 						while (values.moveToNext()) {
-							x.add(toTimestamp(values.getString(0),
-									values.getString(1)));
+							long x_val = toTimestamp(values.getString(0),
+									values.getString(1));
+							if (x_val < x_min) {
+								x_min = x_val;
+							}
+							if (x_val > x_max) {
+								x_max = x_val;
+							}
+							x.add(x_val);
 							y.add(normalizeValue((values.getFloat(2)), type));
+
 						}
 						SimpleXYSeries serie = new SimpleXYSeries(x, y, type);
 						series.add(serie);
@@ -259,7 +220,7 @@ public class StartActivity extends Activity implements
 						mySimpleXYPlot.setRangeBoundaries(0, 100,
 								BoundaryMode.AUTO);
 						mySimpleXYPlot.setRangeLabel("");
-						mySimpleXYPlot.setRangeStepValue(22);
+						mySimpleXYPlot.setRangeStepValue(21);
 						mySimpleXYPlot.getGraphWidget().getRangeLabelPaint()
 								.setAlpha(0);
 						mySimpleXYPlot.getGraphWidget()
@@ -267,8 +228,13 @@ public class StartActivity extends Activity implements
 						mySimpleXYPlot.setDomainLabel("Date");
 						// mySimpleXYPlot.setDomainStep(XYStepMode.INCREMENT_BY_VAL,
 						// 1);
-						mySimpleXYPlot.setDomainStep(XYStepMode.SUBDIVIDE,
-								values.getCount());
+						mySimpleXYPlot.setDomainStep(
+								XYStepMode.INCREMENT_BY_VAL,
+								1000 * 60 * 60 * 24);
+						lowerBoundary = x_max - 1000 * 60 * 60 * 24 * 7;
+						upperBoundary = x_max;
+						mySimpleXYPlot.setDomainBoundaries(lowerBoundary,
+								upperBoundary, BoundaryMode.AUTO);
 						values.close();
 						mySimpleXYPlot.setDomainValueFormat(new MyDateFormat());
 						mySimpleXYPlot.disableAllMarkup();
@@ -280,6 +246,35 @@ public class StartActivity extends Activity implements
 					}
 				}
 			}
+		}
+		try {
+			mySimpleXYPlot.getSeriesSet();
+			mySimpleXYPlot.getSeriesSet().isEmpty();
+		} catch (Exception e) {
+			ArrayList<Number> x = new ArrayList<Number>();
+			ArrayList<Number> y = new ArrayList<Number>();
+			SimpleXYSeries serie = new SimpleXYSeries(x, y, "");
+			series.add(serie);
+			LineAndPointFormatter formatter = new LineAndPointFormatter(
+					Color.BLACK, Color.BLACK, Color.BLACK);
+			mySimpleXYPlot.addSeries(serie, formatter);
+			mySimpleXYPlot.setRangeBoundaries(0, 100, BoundaryMode.AUTO);
+			mySimpleXYPlot.setRangeLabel("");
+			mySimpleXYPlot.setRangeStepValue(21);
+			mySimpleXYPlot.getGraphWidget().getRangeLabelPaint().setAlpha(0);
+			mySimpleXYPlot.getGraphWidget().getRangeOriginLabelPaint()
+					.setAlpha(0);
+			mySimpleXYPlot.setDomainLabel("Date");
+			mySimpleXYPlot.setDomainStep(XYStepMode.INCREMENT_BY_VAL,
+					1000 * 60 * 60 * 24);
+			lowerBoundary = System.currentTimeMillis() - 1000 * 60 * 60 * 24
+					* 7;
+			upperBoundary = System.currentTimeMillis();
+			mySimpleXYPlot.setDomainBoundaries(lowerBoundary, upperBoundary,
+					BoundaryMode.AUTO);
+			mySimpleXYPlot.setDomainValueFormat(new MyDateFormat());
+			mySimpleXYPlot.disableAllMarkup();
+			mySimpleXYPlot.redraw();
 		}
 	}
 
@@ -368,15 +363,19 @@ public class StartActivity extends Activity implements
 		switch (buttonID) {
 		case (R.id.bloodpressure):
 			chooseMeasurementType(TYPE_BLOODPRESSURE);
+			paint();
 			break;
 		case (R.id.heartrate):
 			chooseMeasurementType(TYPE_HEARTRATE);
+			paint();
 			break;
 		case (R.id.temperature):
 			chooseMeasurementType(TYPE_TEMPERATURE);
+			paint();
 			break;
 		case (R.id.timeofmedication):
 			chooseMeasurementType(TYPE_MEDICATION);
+			paint();
 			break;
 		}
 	}
@@ -432,7 +431,6 @@ public class StartActivity extends Activity implements
 		for (int i = 0; i < activeMeasurementsInGraph.size(); i++) {
 			Log.d("1338", i + "im graphen: " + activeMeasurementsInGraph.get(i));
 		}
-		paint();
 	}
 
 	public void setPatient(long patientId) {
@@ -465,57 +463,81 @@ public class StartActivity extends Activity implements
 		}
 
 		paint();
-
-		Handler handler = new Handler();
-
-		getContentResolver().registerContentObserver(
-				MyContentProvider.MEASUREMENT_URI, false,
-				new ContentObserver(handler) {
-					@Override
-					public void onChange(boolean selfChange) {
-						super.onChange(selfChange);
-						paint();
-					}
-				});
 	}
 
 	private OnTouchListener myGraphTouchListener = new OnTouchListener() {
+		private int touches = 0;
 
 		public boolean onTouch(View v, MotionEvent event) {
+			Log.i("OnGraphTouch", "touches=" + touches);
 			if (event.getAction() == MotionEvent.ACTION_DOWN
 					&& mySimpleXYPlot.containsPoint(event.getX(), event.getY())) {
-				mySimpleXYPlot.setCursorPosition(event.getX(), event.getY());
-				long xAxisValue = mySimpleXYPlot.getGraphWidget()
-						.getXVal(event.getX()).longValue();
-				double yAxisValue = mySimpleXYPlot.getGraphWidget()
-						.getRangeCursorVal();
-				mySimpleXYPlot.getGraphWidget().setCursorLabelPaint(null);
-				String xAxisDate = new Date(xAxisValue).toLocaleString();
-				Log.d("OnGraphTouch", "X-Value: " + xAxisDate + "\nY-Value: "
-						+ yAxisValue);
-				getInfoTextFromLongDate(xAxisValue);
-				if (!added)
-					createPopUp(getInfoTextFromLongDate(xAxisValue),
-							(int) event.getX(), (int) event.getY());
-				else {
-					removePopUp();
-					createPopUp(getInfoTextFromLongDate(xAxisValue),
-							(int) event.getX(), (int) event.getY());
+				touches++;
+				if (touches<=1) {
+					mySimpleXYPlot
+							.setCursorPosition(event.getX(), event.getY());
+					long xAxisValue = mySimpleXYPlot.getGraphWidget()
+							.getXVal(event.getX()).longValue();
+					double yAxisValue = mySimpleXYPlot.getGraphWidget()
+							.getRangeCursorVal();
+					mySimpleXYPlot.getGraphWidget().setCursorLabelPaint(null);
+					String xAxisDate = new Date(xAxisValue).toLocaleString();
+					Log.d("OnGraphTouch", "X-Value: " + xAxisDate
+							+ "\nY-Value: " + yAxisValue);
+					getInfoTextFromLongDate(xAxisValue);
+					if (!added)
+						createPopUp(getInfoTextFromLongDate(xAxisValue),
+								(int) event.getX(), (int) event.getY());
+					else {
+						removePopUp();
+						createPopUp(getInfoTextFromLongDate(xAxisValue),
+								(int) event.getX(), (int) event.getY());
 
+					}
 				}
+			}
+			if (event.getAction() == MotionEvent.ACTION_UP) {
+				touches--;
 			}
 			if (event.getAction() == MotionEvent.ACTION_MOVE
 					&& mySimpleXYPlot.containsPoint(event.getX(), event.getY())) {
-				mySimpleXYPlot.setCursorPosition(event.getX(), event.getY());
-				long xAxisValue = mySimpleXYPlot.getGraphWidget()
-						.getXVal(event.getX()).longValue();
-				double yAxisValue = mySimpleXYPlot.getGraphWidget()
-						.getRangeCursorVal();
-				String xAxisDate = new Date(xAxisValue).toLocaleString();
-				Log.d("OnGraphTouch", "X-Value: " + xAxisDate + "\nY-Value: "
-						+ yAxisValue);
-				popUp.setText(getInfoTextFromLongDate(xAxisValue));
-				popUp.setPadding((int) event.getX(), (int) event.getY(), 0, 0);
+				if (touches <= 1) {
+					if (event.getHistorySize() > 0) {
+						mySimpleXYPlot.setCursorPosition(event.getX(),
+								event.getY());
+						long xAxisValue = mySimpleXYPlot.getGraphWidget()
+								.getXVal(event.getX()).longValue();
+						double yAxisValue = mySimpleXYPlot.getGraphWidget()
+								.getRangeCursorVal();
+						String xAxisDate = new Date(xAxisValue)
+								.toLocaleString();
+						Log.d("OnGraphTouch", "X-Value: " + xAxisDate
+								+ "\nY-Value: " + yAxisValue);
+						popUp.setText(getInfoTextFromLongDate(xAxisValue));
+						popUp.setPadding((int) event.getX(),
+								(int) event.getY(), 0, 0);
+					}
+				} else {
+					removePopUp();
+					mySimpleXYPlot.setCursorPosition(0, 0);
+					if (event.getHistorySize() > 0) {
+						mySimpleXYPlot.setCursorPosition(event.getX(),
+								event.getY());
+						long present = mySimpleXYPlot.getGraphWidget()
+								.getXVal(event.getX()).longValue();
+						mySimpleXYPlot.setCursorPosition(event.getX(),
+								event.getY());
+						long last = mySimpleXYPlot.getGraphWidget()
+								.getXVal(event.getHistoricalX(0)).longValue();
+						long diff = present - last;
+						lowerBoundary -= diff;
+						upperBoundary -= diff;
+
+						mySimpleXYPlot.setDomainBoundaries(lowerBoundary,
+								upperBoundary, BoundaryMode.AUTO);
+					}
+				}
+				return true;
 			}
 
 			return true;
@@ -551,6 +573,9 @@ public class StartActivity extends Activity implements
 		while (seriesiterator.hasNext()) {
 			ArrayList<Long> dateValues = new ArrayList<Long>();
 			XYSeries serie = seriesiterator.next();
+			if (series.size() <= 0) {
+				continue;
+			}
 			for (int i = 0; i < serie.size(); i++) {
 				dateValues.add((Long) serie.getX(i));
 			}
@@ -611,18 +636,23 @@ public class StartActivity extends Activity implements
 
 	private long getNearestDate(ArrayList<Long> seriesDates, long dateValue) {
 		int minimumAt = 0;
-		long minimumDifference = Math.abs(seriesDates.get(0) - dateValue);
-		long nextDate = seriesDates.get(0);
-		int i = 0;
-		for (long entry : seriesDates) {
-			if (Math.abs(seriesDates.get(i) - dateValue) < minimumDifference) {
-				minimumAt = i;
-				minimumDifference = Math.abs(seriesDates.get(i) - dateValue);
-				nextDate = seriesDates.get(i);
+		if (!seriesDates.isEmpty()) {
+			long minimumDifference = Math.abs(seriesDates.get(0) - dateValue);
+			long nextDate = seriesDates.get(0);
+			int i = 0;
+			for (long entry : seriesDates) {
+				if (Math.abs(seriesDates.get(i) - dateValue) < minimumDifference) {
+					minimumAt = i;
+					minimumDifference = Math
+							.abs(seriesDates.get(i) - dateValue);
+					nextDate = seriesDates.get(i);
+				}
+				i++;
 			}
-			i++;
+			return nextDate;
+		} else {
+			return 0;
 		}
-		return nextDate;
 	}
 
 	private double cutNumber(double input) {
