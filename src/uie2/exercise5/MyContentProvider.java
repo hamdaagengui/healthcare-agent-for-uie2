@@ -1,5 +1,14 @@
 package uie2.exercise5;
 
+import java.io.IOException;
+import java.io.InputStream;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
+
 import android.content.ContentProvider;
 import android.content.ContentUris;
 import android.content.ContentValues;
@@ -27,7 +36,55 @@ public class MyContentProvider extends ContentProvider {
 		uriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
 		uriMatcher.addURI(AUTHORITY, PATIENT_TABLE_NAME, PATIENT);
 		uriMatcher.addURI(AUTHORITY, MEASUREMENT_TABLE_NAME, MEASUREMENT);
+
+		fillDatabase();
+
 		return true;
+	}
+
+	private void fillDatabase() {
+		database.getWritableDatabase().execSQL("DROP TABLE IF EXISTS Patient");
+		database.getWritableDatabase().execSQL("DROP TABLE IF EXISTS Measurement");
+		database.getWritableDatabase().execSQL("CREATE TABLE IF NOT EXISTS Patient ("
+				+ "_id INTEGER PRIMARY KEY NOT NULL, "
+				+ "lastname VARCHAR, firstname VARCHAR, "
+				+ " dateofbirth VARCHAR, gender VARCHAR(1), "
+				+ "address VARCHAR, city VARCHAR, pictureURI String)");
+		database.getWritableDatabase().execSQL("CREATE TABLE IF NOT EXISTS Measurement ("
+				+ "_id INTEGER PRIMARY KEY NOT NULL, "
+				+ "patientID INTEGER, type STRING, "
+				+ "metric STRING, date STRING, time String, value FLOAT)");
+		InputStream input = null;
+		try {
+			DocumentBuilderFactory factory = DocumentBuilderFactory
+					.newInstance();
+			DocumentBuilder builder = factory.newDocumentBuilder();
+			input = getContext().getResources().openRawResource(R.raw.ehr);
+			Document doc = builder.parse(input);
+			doc.getDocumentElement().normalize();
+			NodeList patientList = doc.getElementsByTagName("patient");
+			for (int i = 0; i < patientList.getLength(); i++) {
+				Patient patient = new Patient(patientList.item(i));
+				insert(MyContentProvider.PATIENT_URI, patient.getValues());
+
+				NodeList m_nodes = patientList.item(i).getChildNodes().item(1)
+						.getChildNodes();
+				for (int j = 1; j < m_nodes.getLength(); j += 2) {
+					Measurement measurement = new Measurement(m_nodes.item(j),
+							patient.getId());
+					insert(MyContentProvider.MEASUREMENT_URI,
+							measurement.getValues());
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				input.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 
 	@Override
